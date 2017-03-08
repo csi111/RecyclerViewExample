@@ -1,0 +1,67 @@
+ext {
+
+    supportVersion = '25.1.0'
+    retrofitVersion = '2.1.0'
+    rxAndroidVersion = '1.1.0'
+    rxBindingVersion = '0.3.0'
+    butterknifeVersion = '8.4.0'
+    glideVersion = '3.6.1'
+
+    junitVersion = '4.12'
+    mockitoVersion = '1.10.19'
+    robolectricVersion = '3.0'
+    espressoVersion = '2.2.2'
+    parcelerVersion = '1.1.1'
+
+    //Packages
+    supportPackage = 'com.android.support'
+    retrofitPackage = 'com.squareup.retrofit2'
+    reactivePackage = 'io.reactivex'
+
+    jakeWhartonPackage = 'com.jakewharton'
+    jakeWhartonRxPackage = 'com.jakewharton.rxbinding'
+    glidePackage = 'com.github.bumptech.glide'
+
+    junitPackage = 'junit'
+    mockitoPackage = 'org.mockito'
+    robolectricPackage = 'org.robolectric'
+    espressoPackage = 'com.android.support.test.espresso'
+    parcelerPackage = 'org.parceler'
+
+    supportDependencies = [design           : buildDependency(supportPackage, 'design', supportVersion),
+                           recyclerView     : buildDependency(supportPackage, 'recyclerview-v7', supportVersion),
+                           cardView         : buildDependency(supportPackage, 'cardview-v7', supportVersion),
+                           appCompat        : buildDependency(supportPackage, 'appcompat-v7', supportVersion),
+                           supportAnnotation: buildDependency(supportPackage, 'support-annotations', supportVersion),
+                           palette          : buildDependency(supportPackage, 'palette-v7', supportVersion),
+                           percent          : buildDependency(supportPackage, 'percent', supportVersion)]
+
+    retrofitDependencies = [retrofit     : buildDependency(retrofitPackage, 'retrofit', retrofitVersion),
+                            gson         : buildDependency(retrofitPackage, 'converter-gson', retrofitVersion),
+                            rxAdapterJava: buildDependency(retrofitPackage, 'adapter-rxjava', retrofitVersion)]
+
+    rxDependencies = [rxAndroid: buildDependency(reactivePackage, 'rxandroid', rxAndroidVersion),
+                      rxBinding: buildDependency(jakeWhartonRxPackage, 'rxbinding', rxBindingVersion)]
+
+
+    butterknife = buildDependency(jakeWhartonPackage, 'butterknife', butterknifeVersion)
+    butterknifeProcesser = buildDependency(jakeWhartonPackage, 'butterknife-compiler', butterknifeVersion)
+    glide = buildDependency(glidePackage, 'glide', glideVersion)
+
+
+    parceler = buildDependency(parcelerPackage, 'parceler-api', parcelerVersion)
+    parcelerApt = buildDependency(parcelerPackage, 'parceler', parcelerVersion)
+
+    testingDependencies = [junit      : buildDependency(junitPackage, 'junit', junitVersion),
+                           mockito    : buildDependency(mockitoPackage, 'mockito-core', mockitoVersion),
+                           robolectric: buildDependency(robolectricPackage, 'robolectric', robolectricVersion),
+                           espresso   : buildDependency(espressoPackage, 'espresso-core', espressoVersion)]
+}
+
+String buildDependency(String pack, String dependency, String version) {
+    return "${pack}:${dependency}:${version}"
+}
+
+String buildDependencyCompiler(String pack, String dependency, String version) {
+    return "${pack}:${dependency}:${version}"
+}
