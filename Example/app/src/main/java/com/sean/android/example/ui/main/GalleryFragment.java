@@ -1,20 +1,21 @@
 package com.sean.android.example.ui.main;
 
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.sean.android.example.R;
+import com.sean.android.example.base.protocol.HttpRequest;
+import com.sean.android.example.base.protocol.UrlConnectionClient;
 
 /**
  * A placeholder fragment containing a simple view.
  * Thumnail Image Load
  * http://www.gettyimagesgallery.com/collections/archive/slim-aarons.aspx
- *
  */
 public class GalleryFragment extends Fragment {
 
@@ -33,5 +34,10 @@ public class GalleryFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.gallery_recyclerview);
 
+
+        HttpRequest httpRequest = new HttpRequest.Builder()
+                .baseUrl("http://www.gettyimagesgallery.com/collections/archive/slim-aarons.aspx")
+                .setClient(new UrlConnectionClient())
+                .build();
     }
 }

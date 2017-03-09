@@ -12,7 +12,7 @@ public class HttpRequest {
     private final Client client;
     private final RequestData requestData;
 
-    public HttpRequest(Client client, RequestData requestData) {
+    HttpRequest(Client client, RequestData requestData) {
         this.client = client;
         this.requestData = requestData;
     }
@@ -25,6 +25,11 @@ public class HttpRequest {
         private Client client;
         private String baseUrl;
         private List<Header> headers;
+
+
+        public Builder() {
+
+        }
 
         public Builder setClient(Client client) {
             this.client = client;
