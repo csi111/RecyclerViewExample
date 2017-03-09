@@ -15,7 +15,6 @@ public class RequestData {
 
     private final List<Header> headers;
 
-
     public RequestData(String url, List<Header> headerList) {
         if (url == null) {
             throw new NullPointerException("URL must have values");

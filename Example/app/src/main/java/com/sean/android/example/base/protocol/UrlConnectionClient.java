@@ -13,7 +13,6 @@ import java.util.Map;
  */
 
 public class UrlConnectionClient implements Client {
-
     private static final int CHUNK_SIZE = 2048;
 
     @Override
