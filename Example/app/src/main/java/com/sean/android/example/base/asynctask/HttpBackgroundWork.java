@@ -13,7 +13,8 @@ import java.util.concurrent.Callable;
 
 public class HttpBackgroundWork<RESPONSE_DTO> implements Callable<HttpBackgroundResult> {
     private HttpRequest httpRequest;
-    private String baseUrl;
+    private String host;
+    private String path;
 
     public HttpBackgroundWork() {
         this(null);
@@ -35,12 +36,12 @@ public class HttpBackgroundWork<RESPONSE_DTO> implements Callable<HttpBackground
     }
 
     protected void preHttpTransaction() {
-        buildUrl();
+        prepareUrlAddress();
     }
 
-    protected void initHttpTransaction() {
+    protected void initHttpTransaction() throws ConnectException {
         if (httpRequest == null) {
-            httpRequest = new HttpRequest.Builder().baseUrl(baseUrl).setClient(new UrlConnectionClient()).build();
+            httpRequest = new HttpRequest.Builder().baseUrl(buildUrl()).setClient(new UrlConnectionClient()).build();
         }
     }
 
@@ -55,20 +56,41 @@ public class HttpBackgroundWork<RESPONSE_DTO> implements Callable<HttpBackground
     protected void onBeginHttpTransaction(HttpRequest httpRequest) {
     }
 
-    protected HttpBackgroundResult onCompleteHttpTransation(HttpRequest httpRequest, ResponseData responseData) {
-        return null;
+    protected HttpBackgroundResult<RESPONSE_DTO> onCompleteHttpTransation(HttpRequest httpRequest, ResponseData responseData) {
+        HttpBackgroundResult httpBackgroundResult = new HttpBackgroundResult(responseData);
+        return httpBackgroundResult;
     }
 
-    protected void buildUrl() {
+    protected void prepareUrlAddress() {
         HttpUrlPath httpUrlPath = getClass().getAnnotation(HttpUrlPath.class);
 
-        if (httpUrlPath != null && httpUrlPath.path() != null && httpUrlPath.path().length() > 0) {
-            baseUrl = httpUrlPath.path();
+        if (httpUrlPath == null || httpUrlPath.host() == null || httpUrlPath.host().length() == 0) {
+            return;
         }
+        host = httpUrlPath.host();
+        path = httpUrlPath.path();
+    }
+
+    protected String buildUrl() throws ConnectException {
+        if (host == null || host.length() == 0) {
+            throw new ConnectException("URL must not be null!!!");
+        }
+
+        StringBuilder stringBuilder = new StringBuilder(host);
+        stringBuilder.append(path);
+
+        return stringBuilder.toString();
     }
 
     protected boolean isEmptyUrl() {
-        return baseUrl == null || baseUrl.length() == 0;
+        return host == null || host.length() == 0;
     }
 
+    protected String getHost() {
+        return host;
+    }
+
+    public String getPath() {
+        return path;
+    }
 }

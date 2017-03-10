@@ -14,5 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HttpUrlPath {
 
+    String host() default "";
+
     String path() default "";
 }

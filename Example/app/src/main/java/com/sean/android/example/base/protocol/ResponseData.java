@@ -41,4 +41,8 @@ public final class ResponseData {
     public List<Header> getHeaders() {
         return headers;
     }
+
+    public Input getResponseBody() {
+        return responseBody;
+    }
 }

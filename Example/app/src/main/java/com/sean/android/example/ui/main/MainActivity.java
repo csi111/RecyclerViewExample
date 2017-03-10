@@ -7,6 +7,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.sean.android.example.R;
+import com.sean.android.example.api.GettyImageBackgroundwork;
+import com.sean.android.example.base.asynctask.BackgroundWorker;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,6 +18,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        BackgroundWorker backgroundWorker = new BackgroundWorker();
+        backgroundWorker.addBackgroundWork(new GettyImageBackgroundwork());
+        backgroundWorker.execute();
     }
 
     @Override

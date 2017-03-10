@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,11 +36,5 @@ public class GalleryFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.gallery_recyclerview);
-
-
-        HttpRequest httpRequest = new HttpRequest.Builder()
-                .baseUrl("http://www.gettyimagesgallery.com/collections/archive/slim-aarons.aspx")
-                .setClient(new UrlConnectionClient())
-                .build();
     }
 }
