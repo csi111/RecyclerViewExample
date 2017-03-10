@@ -1,5 +1,6 @@
 package com.sean.android.example.base.domain;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -12,7 +13,7 @@ public class AppModelContainer<M extends AppModel> extends AppModel implements I
     private List<M> models;
 
     public AppModelContainer() {
-        this.models = Collections.emptyList();
+        this.models = new ArrayList<>();
     }
 
     public void clear() {
@@ -72,5 +73,12 @@ public class AppModelContainer<M extends AppModel> extends AppModel implements I
     @Override
     public Iterator<M> iterator() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "AppModelContainer{" +
+                "models=" + models.toString() +
+                '}';
     }
 }

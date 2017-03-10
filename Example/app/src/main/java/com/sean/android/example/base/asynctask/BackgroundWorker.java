@@ -138,15 +138,6 @@ public class BackgroundWorker {
         this.executorType = executorType;
     }
 
-    public static interface BackgroundWorkEventListener {
-        void onPreExecute(int transactionId);
-
-        void onComplete(int transactionId, List<BackgroundWorkResult> results);
-
-        void onError(int transactionId, int backgroundWorkId, Exception e);
-
-        void onCanceled(int transactionId);
-    }
 
     public static class BackgroundWorkResult {
         private int backgroundWorkId;
@@ -276,5 +267,15 @@ public class BackgroundWorker {
                 backgroundWorkEventListener.onCanceled(transactionId);
             }
         }
+    }
+
+    public static interface BackgroundWorkEventListener {
+        void onPreExecute(int transactionId);
+
+        void onComplete(int transactionId, List<BackgroundWorkResult> results);
+
+        void onError(int transactionId, int backgroundWorkId, Exception e);
+
+        void onCanceled(int transactionId);
     }
 }

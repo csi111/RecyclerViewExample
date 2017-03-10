@@ -48,31 +48,14 @@ public class GettyImage extends AppModel {
         return baseUri;
     }
 
-    public String getLinkUrl() {
-        if (linkPath == null || linkPath.length() == 0) {
-            throw new NullPointerException("ImagePath is null!!!");
-        }
 
-        if (linkPath.startsWith("http")) {
-            return linkPath;
-        }
-
-        StringBuilder stringBuilder = new StringBuilder(baseUri);
-        stringBuilder.append(linkPath);
-        return stringBuilder.toString();
-    }
-
-    public String getImageUrl() {
-        if (imagePath == null || imagePath.length() == 0) {
-            throw new NullPointerException("ImagePath is null!!!");
-        }
-
-        if (linkPath.startsWith("http")) {
-            return linkPath;
-        }
-
-        StringBuilder stringBuilder = new StringBuilder(baseUri);
-        stringBuilder.append(linkPath);
-        return stringBuilder.toString();
+    @Override
+    public String toString() {
+        return "GettyImage{" +
+                "name='" + name + '\'' +
+                ", linkPath='" + linkPath + '\'' +
+                ", imagePath='" + imagePath + '\'' +
+                ", baseUri='" + baseUri + '\'' +
+                '}';
     }
 }
