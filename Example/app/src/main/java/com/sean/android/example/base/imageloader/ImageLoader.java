@@ -47,7 +47,7 @@ public class ImageLoader {
             diskCache = new LruDiskCache(diskCacheDirectory);
         }
 
-        imageLoadExecutor = new ImageLoadExecutor();
+        imageLoadExecutor = new ImageLoadExecutor(memoryCache, diskCache);
     }
 
 
