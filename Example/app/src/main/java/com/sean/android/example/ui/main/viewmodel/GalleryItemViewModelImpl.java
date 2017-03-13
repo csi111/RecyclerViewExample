@@ -6,11 +6,11 @@ import com.sean.android.example.domain.GettyImage;
  * Created by sean on 2017. 3. 11..
  */
 
-public class GalleryItemVeiwModelImpl implements GalleryItemViewModel {
+public class GalleryItemViewModelImpl implements GalleryItemViewModel {
 
     private final GettyImage gettyImage;
 
-    public GalleryItemVeiwModelImpl(GettyImage gettyImage) {
+    public GalleryItemViewModelImpl(GettyImage gettyImage) {
         this.gettyImage = gettyImage;
     }
 

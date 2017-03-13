@@ -2,7 +2,6 @@ package com.sean.android.example.ui.main;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,7 +14,7 @@ import com.sean.android.example.base.asynctask.HttpBackgroundResult;
 import com.sean.android.example.base.util.Logger;
 import com.sean.android.example.domain.GettyImage;
 import com.sean.android.example.domain.GettyImages;
-import com.sean.android.example.ui.main.viewmodel.GalleryItemVeiwModelImpl;
+import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
 
@@ -52,7 +51,7 @@ public class MainActivity extends BaseActivity {
             List<GalleryItemViewModel> viewModels = new ArrayList<>();
 
             for(GettyImage gettyImage : gettyImages.getModels()) {
-                viewModels.add(new GalleryItemVeiwModelImpl(gettyImage));
+                viewModels.add(new GalleryItemViewModelImpl(gettyImage));
             }
             updateFragment(R.id.fragment, viewModels);
         }
