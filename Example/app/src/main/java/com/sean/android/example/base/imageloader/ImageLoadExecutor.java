@@ -38,7 +38,7 @@ public class ImageLoadExecutor {
         this.memoryCache = memoryCache;
         this.diskCache = diskCache;
         cacheImages = Collections.synchronizedMap(new HashMap<Integer, String>());
-        createExecutor();
+        initializeLoadTask();
     }
 
 
