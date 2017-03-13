@@ -1,5 +1,8 @@
 package com.sean.android.example.base.imageloader;
 
+import com.sean.android.example.base.imageloader.cache.MemoryCache;
+import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +30,13 @@ public class ImageLoadExecutor {
     private AtomicBoolean isPause = new AtomicBoolean(false);
     private final Object pauseLock = new Object();
 
+    private MemoryCache memoryCache;
+    private DiskCache diskCache;
 
-    public ImageLoadExecutor() {
+
+    public ImageLoadExecutor(MemoryCache memoryCache, DiskCache diskCache) {
+        this.memoryCache = memoryCache;
+        this.diskCache = diskCache;
         cacheImages = Collections.synchronizedMap(new HashMap<Integer, String>());
         createExecutor();
     }

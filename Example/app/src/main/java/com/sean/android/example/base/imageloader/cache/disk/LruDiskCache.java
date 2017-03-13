@@ -17,7 +17,7 @@ import java.io.OutputStream;
  */
 
 public class LruDiskCache implements DiskCache {
-    private static final String DISK_CACHE_DIR = "IMAGE_CACHE";
+
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 10;
     private DiskLruCache lruDiskCache;
 
