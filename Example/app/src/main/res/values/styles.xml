@@ -16,12 +16,24 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
     <style name="AppTheme.Translucent_NoTitleBar" parent="ThemeOverlay.AppCompat.Light">
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@color/windowTranslucentColor</item>
+    </style>
+
+
+    <style name="GalleryInformationViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/gallery_information_height</item>
+        <item name="android:paddingBottom">3dp</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:background">#aa000000</item>
     </style>
 
 </resources>

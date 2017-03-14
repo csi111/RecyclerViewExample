@@ -11,4 +11,6 @@ public interface GalleryItemViewModel {
     String getImageUrl();
 
     String getLinkUrl();
+
+    boolean checkVisibleInformation();
 }

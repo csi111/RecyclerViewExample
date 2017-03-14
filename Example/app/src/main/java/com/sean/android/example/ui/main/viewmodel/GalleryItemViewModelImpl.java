@@ -1,5 +1,7 @@
 package com.sean.android.example.ui.main.viewmodel;
 
+import android.text.TextUtils;
+
 import com.sean.android.example.domain.GettyImage;
 
 /**
@@ -52,5 +54,10 @@ public class GalleryItemViewModelImpl implements GalleryItemViewModel {
         StringBuilder stringBuilder = new StringBuilder(gettyImage.getBaseUri());
         stringBuilder.append(linkPath);
         return stringBuilder.toString();
+    }
+
+    @Override
+    public boolean checkVisibleInformation() {
+        return TextUtils.isEmpty(gettyImage.getName());
     }
 }

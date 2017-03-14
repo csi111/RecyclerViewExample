@@ -6,27 +6,18 @@ import android.view.ViewGroup;
 
 import com.sean.android.example.R;
 import com.sean.android.example.base.view.OnItemClickListener;
-import com.sean.android.example.ui.main.viewmodel.AdapterViewModel;
-import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 
 /**
  * Created by sean on 2017. 3. 9..
  */
 
-public class GalleryAdapter extends RecyclerView.Adapter<GalleryViewHolder> implements OnItemClickListener, AdapterViewModel<GalleryItemViewModel> {
+public class GalleryAdapter extends RecyclerView.Adapter<GalleryViewHolder> implements OnItemClickListener {
 
-    private List<GalleryItemViewModel> galleryItemViewModels;
+    private GalleryViewModel galleryViewModel;
 
-    public GalleryAdapter() {
-        this(new ArrayList<GalleryItemViewModel>());
-    }
-
-    public GalleryAdapter(List<GalleryItemViewModel> galleryItemViewModels) {
-        this.galleryItemViewModels = galleryItemViewModels;
+    public GalleryAdapter(GalleryViewModel galleryViewModel) {
+        this.galleryViewModel = galleryViewModel;
     }
 
     @Override
@@ -40,33 +31,18 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryViewHolder> impl
             return;
         }
 
-        holder.onBind(galleryItemViewModels.get(position));
+        holder.onBind(galleryViewModel.get(position));
     }
 
 
     @Override
     public int getItemCount() {
-        return galleryItemViewModels.size();
+        return galleryViewModel.itemCount();
     }
 
 
     @Override
     public void onClickItem(int position) {
-
-    }
-
-    @Override
-    public void add(GalleryItemViewModel galleryItemViewModel) {
-        int currentItemCount = getItemCount();
-        this.galleryItemViewModels.add(galleryItemViewModel);
-        notifyItemInserted(currentItemCount + 1);
-    }
-
-    @Override
-    public void addAll(Collection<GalleryItemViewModel> galleryItemViewModels) {
-        int currentItemCount = getItemCount();
-        this.galleryItemViewModels.addAll(galleryItemViewModels);
-//        notifyItemRangeInserted(currentItemCount, galleryItemViewModels.size());
-        notifyItemInserted(0);
+        galleryViewModel.navigateGalleryDetail(position);
     }
 }

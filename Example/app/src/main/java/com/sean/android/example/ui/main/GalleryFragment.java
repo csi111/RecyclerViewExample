@@ -4,33 +4,26 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.sean.android.example.R;
-import com.sean.android.example.base.protocol.HttpRequest;
-import com.sean.android.example.base.protocol.UrlConnectionClient;
-import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
+import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
-
-import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
  * Thumnail Image Load
  * http://www.gettyimagesgallery.com/collections/archive/slim-aarons.aspx
  */
-public class GalleryFragment extends Fragment implements ViewBinder<List<GalleryItemViewModel>> {
+public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewModel>, GalleryViewModel.Notification {
+    private static final int SPAN_COUNT = 2;
+
+    private GalleryViewModel galleryViewModel;
 
     private RecyclerView recyclerView;
-
-    private GalleryAdapter galleryAdapter;
 
     public GalleryFragment() {
     }
@@ -38,7 +31,7 @@ public class GalleryFragment extends Fragment implements ViewBinder<List<Gallery
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        galleryAdapter = new GalleryAdapter();
+        setRetainInstance(true);
     }
 
     @Override
@@ -50,17 +43,29 @@ public class GalleryFragment extends Fragment implements ViewBinder<List<Gallery
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         recyclerView = (RecyclerView) view.findViewById(R.id.gallery_recyclerview);
-//        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-//        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-//        linearLayoutManager.generateLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
-        recyclerView.setAdapter(galleryAdapter);
+        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), SPAN_COUNT));
+
     }
 
     @Override
-    public void onBind(List<GalleryItemViewModel> galleryItemViewModels) {
-        if (isVisible()) {
-            galleryAdapter.addAll(galleryItemViewModels);
-        }
+    public void onBind(GalleryViewModel galleryViewModel) {
+        galleryViewModel.setNotification(this);
+        this.galleryViewModel = galleryViewModel;
+        recyclerView.setAdapter(new GalleryAdapter(galleryViewModel));
+    }
+
+    @Override
+    public void onNotifyItemInserted(int startPosition, int size) {
+        recyclerView.getAdapter().notifyItemRangeChanged(startPosition, size);
+    }
+
+    @Override
+    public void onNotifyItemInserted(int position) {
+        recyclerView.getAdapter().notifyItemInserted(position);
+    }
+
+    @Override
+    public void onNotifyItemRemoved(int position) {
+        recyclerView.getAdapter().notifyItemRemoved(position);
     }
 }
