@@ -16,6 +16,7 @@ import static android.os.Environment.MEDIA_MOUNTED;
 public class StorageUtil {
     private static final String EXTERNAL_STORAGE_PERMISSION = "android.permission.WRITE_EXTERNAL_STORAGE";
     private static final String DISK_CACHE_DIR = "IMAGE_CACHE";
+    private static final String FILE_SCHEME = "file://";
 
     private StorageUtil() {
 
@@ -46,9 +47,9 @@ public class StorageUtil {
         String externalStorageState;
         try {
             externalStorageState = Environment.getExternalStorageState();
-        } catch (NullPointerException e) { // (sh)it happens (Issue #660)
+        } catch (NullPointerException e) {
             externalStorageState = "";
-        } catch (IncompatibleClassChangeError e) { // (sh)it happens too (Issue #989)
+        } catch (IncompatibleClassChangeError e) {
             externalStorageState = "";
         }
         if (preferExternal && MEDIA_MOUNTED.equals(externalStorageState) && hasExternalStoragePermission(context)) {
@@ -83,4 +84,15 @@ public class StorageUtil {
         int perm = context.checkCallingOrSelfPermission(EXTERNAL_STORAGE_PERMISSION);
         return perm == PackageManager.PERMISSION_GRANTED;
     }
+
+    public static String getFilePath(File file) {
+        StringBuilder stringBuilder = new StringBuilder(FILE_SCHEME);
+        stringBuilder.append(file.getAbsolutePath());
+        return stringBuilder.toString();
+    }
+
+    public static String getFilePathFromUri(String uri) {
+        return uri.substring(FILE_SCHEME.length());
+    }
+
 }

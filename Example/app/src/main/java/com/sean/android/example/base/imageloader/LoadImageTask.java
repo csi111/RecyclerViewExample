@@ -1,19 +1,19 @@
 package com.sean.android.example.base.imageloader;
 
-import android.annotation.TargetApi;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Handler;
 
 import com.sean.android.example.base.imageloader.cache.MemoryCache;
 import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
+import com.sean.android.example.base.imageloader.cache.disk.LruDiskCache;
 import com.sean.android.example.base.protocol.Client;
+import com.sean.android.example.base.protocol.ConnectException;
 import com.sean.android.example.base.protocol.RequestData;
 import com.sean.android.example.base.protocol.ResponseData;
 import com.sean.android.example.base.protocol.UrlConnectionClient;
+import com.sean.android.example.base.util.Logger;
 
-import java.io.FileDescriptor;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,7 +23,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by Seonil on 2017-03-13.
  */
 
-public class LoadImageTask implements Runnable {
+public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
+
 
     private ImageLoadExecutor imageLoadExecutor;
 
@@ -34,7 +35,7 @@ public class LoadImageTask implements Runnable {
 
     private Client imageDownloader;
 
-    private String memoryCacheKey;
+    private ImageDecoder imageDecoder;
 
     private ImageViewWrapper imageViewWrapper;
 
@@ -48,22 +49,21 @@ public class LoadImageTask implements Runnable {
 
     private final Handler handler;
 
-    private int imageWidth;
-    private int imageHeight;
-
+    private final ImageSize imageSize;
 
     public LoadImageTask(ImageLoadExecutor imageLoadExecutor, ImageInfo imageInfo, Handler handler) {
         this.imageLoadExecutor = imageLoadExecutor;
+        this.memoryCache = imageLoadExecutor.memoryCache;
+        this.diskCache = imageLoadExecutor.diskCache;
         this.imageInfo = imageInfo;
         this.uri = imageInfo.uri;
         this.handler = handler;
         this.cacheKey = imageInfo.memoryCacheKey;
-        this.imageWidth = imageInfo.imageWidth;
-        this.imageHeight = imageInfo.imageHeight;
+        this.imageSize = imageInfo.imageSize;
         this.imageViewWrapper = imageInfo.imageViewWrapper;
         this.imageLoadingListener = imageInfo.listener;
 
-
+        imageDecoder = new DefaultImageDecoder();
         imageDownloader = new UrlConnectionClient();
     }
 
@@ -78,7 +78,7 @@ public class LoadImageTask implements Runnable {
         Bitmap bitmap;
 
         try {
-            bitmap = memoryCache.get(memoryCacheKey);
+            bitmap = memoryCache.get(cacheKey);
 
             if (bitmap == null || bitmap.isRecycled()) {
                 bitmap = tryLoadBitmap();
@@ -90,14 +90,15 @@ public class LoadImageTask implements Runnable {
 
 
                 if (bitmap != null) { // Memory Caching
-                    memoryCache.put(memoryCacheKey, bitmap);
+                    memoryCache.put(cacheKey, bitmap);
                 }
             } else {
                 imageLoadType = imageLoadType.MEMORY_CACHE;
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            fireCancelEvent();
+            return;
         } finally {
             loadFromUriLock.unlock();
         }
@@ -128,20 +129,21 @@ public class LoadImageTask implements Runnable {
     private Bitmap tryLoadBitmap() throws TaskException {
         Bitmap bitmap = null;
         try {
-            InputStream imageInputStream = diskCache.get(uri);
-            if (imageInputStream != null && imageInputStream.available() > 0) {
+            File imageFile = diskCache.get(uri);
+            if (imageFile != null && imageFile.exists() && imageFile.length() > 0) {
                 imageLoadType = ImageLoadType.DISK_CACHE;
 
                 checkTaskNotActual();
-                bitmap = decodeImage(imageInputStream, imageWidth, imageHeight);
+                bitmap = decodeImage(StorageUtil.getFilePath(imageFile));
             }
             if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
                 imageLoadType = ImageLoadType.NETWORK;
-                ResponseData responseData = imageDownloader.call(new RequestData(uri, null));
-                imageInputStream = responseData.getResponseBody().in();
 
+                //TODO Save DiskCache
+                tryCacheImageOnDisk();
+                imageFile = diskCache.get(uri);
                 checkTaskNotActual();
-                bitmap = decodeImage(imageInputStream, imageWidth, imageHeight);
+                bitmap = decodeImage(StorageUtil.getFilePath(imageFile));
 
                 if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
                     fireFailEvent(null);
@@ -196,6 +198,10 @@ public class LoadImageTask implements Runnable {
         return isViewGarbageCollected() || isViewReused();
     }
 
+    public String getUri() {
+        return uri;
+    }
+
     private boolean isViewGarbageCollected() {
         if (imageViewWrapper.isGarbageCollected()) {
             return true;
@@ -207,7 +213,12 @@ public class LoadImageTask implements Runnable {
         String currentCacheKey = imageLoadExecutor.getLoadingImage(imageViewWrapper);
         // Check whether memory cache key (image URI) for current ImageAware is actual.
         // If ImageAware is reused for another task then current task should be cancelled.
-        boolean imageViewWrapperReused = !currentCacheKey.equals(currentCacheKey);
+
+        if (currentCacheKey == null) {
+            Logger.d(this, "CurrentCacheKey is null");
+        }
+
+        boolean imageViewWrapperReused = !cacheKey.equals(currentCacheKey);
         if (imageViewWrapperReused) {
             return true;
         }
@@ -245,59 +256,46 @@ public class LoadImageTask implements Runnable {
         }
     }
 
-    public Bitmap decodeImage(InputStream inputStream, int reqWidth, int reqHeight) {
+    private boolean tryCacheImageOnDisk() throws TaskException {
 
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(inputStream, null, options);
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-
-        return BitmapFactory.decodeStream(inputStream, null, options);
+        boolean loaded;
+        try {
+            loaded = downloadImage();
+        } catch (IOException e) {
+            loaded = false;
+            fireFailEvent(e.getCause());
+        } catch (ConnectException e) {
+            fireFailEvent(e.getCause());
+            loaded = false;
+        }
+        return loaded;
     }
 
-    private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // BEGIN_INCLUDE (calculate_sample_size)
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
+    private boolean downloadImage() throws ConnectException, IOException {
+        ResponseData responseData = imageDownloader.call(new RequestData(uri, null));
+        InputStream is = responseData.getResponseBody().in();
 
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-
-            // This offers some additional logic in case the image has a strange
-            // aspect ratio. For example, a panorama may have a much larger
-            // width than height. In these cases the total pixels might still
-            // end up being too large to fit comfortably in memory, so we should
-            // be more aggressive with sample down the image (=larger inSampleSize).
-
-            long totalPixels = width * height / inSampleSize;
-
-            // Anything more than 2x the requested pixels we'll sample down further
-            final long totalReqPixelsCap = reqWidth * reqHeight * 2;
-
-            while (totalPixels > totalReqPixelsCap) {
-                inSampleSize *= 2;
-                totalPixels /= 2;
+        if (is == null) {
+            return false;
+        } else {
+            try {
+                return diskCache.save(uri, is, this);
+            } finally {
+                is.close();
             }
         }
-        return inSampleSize;
-        // END_INCLUDE (calculate_sample_size)
+    }
+
+
+    private Bitmap decodeImage(String imageUri) throws IOException {
+        ImageDecodingInfo imageDecodingInfo = new ImageDecodingInfo(cacheKey, imageUri, uri, imageSize);
+        return imageDecoder.decode(imageDecodingInfo);
+    }
+
+
+    @Override
+    public boolean bytesCopied(int current, int total) {
+        return true;
     }
 
     private class TaskException extends Exception {

@@ -3,16 +3,20 @@ package com.sean.android.example.base.imageloader;
 import com.sean.android.example.base.imageloader.cache.MemoryCache;
 import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Seonil on 2017-03-13.
@@ -23,22 +27,48 @@ public class ImageLoadExecutor {
     public static final int THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
 
     private final Map<Integer, String> cacheImages;
+    private final Map<String, ReentrantLock> uriLocks;
 
-    private Executor imageLoadExecutor;
-    private Executor imageLoadExecutorForCachedImage;
+    Executor imageLoadExecutor;
+    Executor imageLoadExecutorForCachedImage; // 고정된 Thread갯수를 가진 Threadpool
+    Executor imageLoadDistributor; // 동적 Threadpool
 
     private AtomicBoolean isPause = new AtomicBoolean(false);
     private final Object pauseLock = new Object();
 
-    private MemoryCache memoryCache;
-    private DiskCache diskCache;
+    MemoryCache memoryCache;
+    DiskCache diskCache;
 
 
     public ImageLoadExecutor(MemoryCache memoryCache, DiskCache diskCache) {
         this.memoryCache = memoryCache;
         this.diskCache = diskCache;
         cacheImages = Collections.synchronizedMap(new HashMap<Integer, String>());
+        uriLocks = new WeakHashMap<String, ReentrantLock>();
         initializeLoadTask();
+        imageLoadDistributor = createCachedExecutor();
+
+    }
+
+    void submit(final LoadImageTask task) {
+        imageLoadDistributor.execute(new Runnable() {
+            @Override
+            public void run() {
+                File imageFile = diskCache.get(task.getUri());
+                boolean isImageCache = (imageFile != null && imageFile.exists() && (imageFile.length() > 0));
+                resetExecutorIfNeed();
+                if (isImageCache) {
+                    imageLoadExecutorForCachedImage.execute(task);
+                } else {
+                    imageLoadExecutor.execute(task);
+                }
+            }
+        });
+    }
+
+    void submit(final DisplayImageTask task) {
+        resetExecutorIfNeed();
+        imageLoadExecutorForCachedImage.execute(task);
     }
 
 
@@ -52,7 +82,7 @@ public class ImageLoadExecutor {
         }
     }
 
-    private void resetExecutor() {
+    private void resetExecutorIfNeed() {
         if (((ExecutorService) imageLoadExecutor).isShutdown()) {
             imageLoadExecutor = createExecutor();
         }
@@ -97,6 +127,10 @@ public class ImageLoadExecutor {
         return new ThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 0, TimeUnit.MILLISECONDS, blockingQueue, new ImageThreadFactory(THREAD_PRIORITY, "image_pool_executor"));
     }
 
+    private Executor createCachedExecutor() {
+        return Executors.newCachedThreadPool(new ImageThreadFactory(Thread.NORM_PRIORITY, "image_pool_dynamic_executor"));
+    }
+
 
     public AtomicBoolean getPause() {
         return isPause;
@@ -104,5 +138,16 @@ public class ImageLoadExecutor {
 
     public Object getPauseLock() {
         return pauseLock;
+    }
+
+
+    ReentrantLock getLockForUri(String uri) {
+        ReentrantLock lock = uriLocks.get(uri);
+
+        if (lock == null) {
+            lock = new ReentrantLock();
+            uriLocks.put(uri, lock);
+        }
+        return lock;
     }
 }

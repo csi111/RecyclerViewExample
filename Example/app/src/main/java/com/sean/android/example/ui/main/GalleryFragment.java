@@ -53,7 +53,7 @@ public class GalleryFragment extends Fragment implements ViewBinder<List<Gallery
 //        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
 //        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 //        linearLayoutManager.generateLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 5));
+        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         recyclerView.setAdapter(galleryAdapter);
     }
 

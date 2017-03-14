@@ -27,8 +27,6 @@ public class MainActivity extends BaseActivity {
 
     private GettyImages gettyImages;
 
-    private GalleryFragment galleryFragment;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +44,6 @@ public class MainActivity extends BaseActivity {
             HttpBackgroundResult<GettyImages> httpBackgroundResult = (HttpBackgroundResult) results.get(0).getResult();
             gettyImages = httpBackgroundResult.getData();
             Logger.d(this, "GettyImage count = [" + gettyImages.count() + "], [" + gettyImages.toString() +"]");
-
 
             List<GalleryItemViewModel> viewModels = new ArrayList<>();
 

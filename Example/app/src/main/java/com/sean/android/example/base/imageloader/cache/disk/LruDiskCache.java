@@ -19,6 +19,7 @@ import java.io.OutputStream;
 public class LruDiskCache implements DiskCache {
 
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 10;
+    private static final int DISK_CACHE_COUNT = Integer.MAX_VALUE;
     private DiskLruCache lruDiskCache;
 
     private File diskCacheDir;
@@ -35,29 +36,31 @@ public class LruDiskCache implements DiskCache {
     private Bitmap.CompressFormat compressFormat = DEFAULT_COMPRESS_FORMAT;
     private int compressQuality = DEFAULT_COMPRESS_QUALITY;
     private int diskCacheSize = DISK_CACHE_SIZE;
+    private int diskCacheCount = DISK_CACHE_COUNT;
 
 
     public LruDiskCache(File cacheDir) {
         diskCacheDir = cacheDir;
+        initCache();
     }
 
 
     private void initCache() {
         try {
-            lruDiskCache = DiskLruCache.open(diskCacheDir, 1, 1, diskCacheSize);
+            lruDiskCache = DiskLruCache.open(diskCacheDir, 1, 1, diskCacheSize, diskCacheCount);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public InputStream get(String imageUri) {
+    public File get(String imageUri) {
 
         DiskLruCache.Snapshot snapshot = null;
 
         try {
             snapshot = lruDiskCache.get(getKey(imageUri));
-            return snapshot == null ? null : snapshot.getInputStream(0);
+            return snapshot == null ? null : snapshot.getFile(0);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -69,7 +72,7 @@ public class LruDiskCache implements DiskCache {
     }
 
     @Override
-    public void save(String imageUri, InputStream imageStream, DiskCopyListener diskCopyListener) throws IOException {
+    public boolean save(String imageUri, InputStream imageStream, DiskCopyListener diskCopyListener) throws IOException {
         DiskLruCache.Editor editor = lruDiskCache.edit(getKey(imageUri));
 
         if (editor != null) {
@@ -85,12 +88,15 @@ public class LruDiskCache implements DiskCache {
                 } else {
                     editor.abort();
                 }
+
+                return isCopied;
             }
         }
+        return false;
     }
 
     @Override
-    public void save(String imageUri, Bitmap bitmap, DiskCopyListener diskCopyListener) throws IOException {
+    public boolean save(String imageUri, Bitmap bitmap, DiskCopyListener diskCopyListener) throws IOException {
         DiskLruCache.Editor editor = lruDiskCache.edit(getKey(imageUri));
         OutputStream outputStream = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
         if (editor != null) {
@@ -105,8 +111,11 @@ public class LruDiskCache implements DiskCache {
                 } else {
                     editor.abort();
                 }
+
+                return isSaved;
             }
         }
+        return false;
     }
 
     @Override

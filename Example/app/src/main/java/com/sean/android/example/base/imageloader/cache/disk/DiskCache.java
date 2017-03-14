@@ -3,6 +3,7 @@ package com.sean.android.example.base.imageloader.cache.disk;
 import android.graphics.Bitmap;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,11 +13,11 @@ import java.io.InputStream;
 
 public interface DiskCache {
 
-    InputStream get(String imageUri);
+    File get(String imageUri);
 
-    void save(String imageUri, InputStream imageStream, LruDiskCache.DiskCopyListener diskCopyListener) throws IOException;
+    boolean save(String imageUri, InputStream imageStream, LruDiskCache.DiskCopyListener diskCopyListener) throws IOException;
 
-    void save(String imageUri, Bitmap bitmap, LruDiskCache.DiskCopyListener diskCopyListener) throws IOException;
+    boolean save(String imageUri, Bitmap bitmap, LruDiskCache.DiskCopyListener diskCopyListener) throws IOException;
 
     void remove(String imageUri);
 

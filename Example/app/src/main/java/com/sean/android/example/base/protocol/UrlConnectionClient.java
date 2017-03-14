@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,11 @@ public class UrlConnectionClient implements Client {
             httpURLConnection.addRequestProperty(header.getName(), header.getValue());
         }
         httpURLConnection.setChunkedStreamingMode(CHUNK_SIZE);
+        try {
+            httpURLConnection.setRequestMethod("GET");
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        }
     }
 
     ResponseData readResponse(HttpURLConnection httpURLConnection) throws IOException, ConnectException {
