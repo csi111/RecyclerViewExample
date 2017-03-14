@@ -12,6 +12,7 @@ import com.sean.android.example.base.imageloader.cache.LruMemoryCache;
 import com.sean.android.example.base.imageloader.cache.MemoryCache;
 import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
 import com.sean.android.example.base.imageloader.cache.disk.LruDiskCache;
+import com.sean.android.example.base.util.Logger;
 
 import java.io.File;
 
@@ -95,11 +96,13 @@ public class ImageLoader {
 
         imageLoadingListener.onLoadingStarted(uri);
 
+
         Bitmap bitmap = memoryCache.get(memoryCacheKey);
 
         ImageInfo imageInfo = new ImageInfo(uri, memoryCacheKey, imageViewWrapper, imageLoadingListener, imageSize, imageLoadExecutor.getLockForUri(uri));
         if(bitmap != null && !bitmap.isRecycled()) {
             //TODO Bitmap From MemoryCache
+            Logger.d(this, "CacheKey =[" + memoryCacheKey + "], Get Bitmap from MemoryCache");
             DisplayImageTask displayImageTask = new DisplayImageTask(bitmap, imageInfo, imageLoadExecutor);
             imageLoadExecutor.submit(displayImageTask);
         } else {

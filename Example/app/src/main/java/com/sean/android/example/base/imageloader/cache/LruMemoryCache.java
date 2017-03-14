@@ -8,7 +8,7 @@ import android.util.LruCache;
  */
 
 public class LruMemoryCache implements MemoryCache {
-    private static final int CACHE_SIZE = 4 * 1024 * 1024;
+    private static final int CACHE_SIZE = 10 * 1024 * 1024;
 
     private LruCache<String, Bitmap> bitmapLruCache;
 

@@ -80,6 +80,8 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
         try {
             bitmap = memoryCache.get(cacheKey);
 
+
+
             if (bitmap == null || bitmap.isRecycled()) {
                 bitmap = tryLoadBitmap();
                 if (bitmap == null)
@@ -90,9 +92,11 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
 
 
                 if (bitmap != null) { // Memory Caching
+                    Logger.d(this, "CacheKey =[" + cacheKey + "], Put Bitmap into MemoryCache");
                     memoryCache.put(cacheKey, bitmap);
                 }
             } else {
+                Logger.d(this, "CacheKey =[" + cacheKey + "], Get Bitmap from MemoryCache");
                 imageLoadType = imageLoadType.MEMORY_CACHE;
             }
 
