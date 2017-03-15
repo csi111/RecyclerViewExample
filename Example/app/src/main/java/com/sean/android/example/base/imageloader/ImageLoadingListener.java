@@ -1,6 +1,7 @@
 package com.sean.android.example.base.imageloader;
 
 import android.graphics.Bitmap;
+import android.view.View;
 import android.widget.ImageView;
 
 /**
@@ -11,9 +12,9 @@ public interface ImageLoadingListener {
 
     void onLoadingStarted(String imageUri);
 
-    void onLoadingComplete(String imageUri, ImageView imageView, Bitmap loadedImage);
+    void onLoadingComplete(String imageUri, View view, Bitmap loadedImage);
 
-    void onLoadingFailed(String imageUri, ImageView imageView, Throwable cause);
+    void onLoadingFailed(String imageUri, View view, Throwable cause);
 
-    void onLoadingCancelled(String imageUri, ImageView imageView);
+    void onLoadingCancelled(String imageUri, View view);
 }

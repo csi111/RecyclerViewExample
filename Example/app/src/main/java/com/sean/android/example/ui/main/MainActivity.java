@@ -12,7 +12,6 @@ import com.sean.android.example.api.GettyImageBackgroundwork;
 import com.sean.android.example.base.activity.BaseActivity;
 import com.sean.android.example.base.asynctask.BackgroundWorker;
 import com.sean.android.example.base.asynctask.HttpBackgroundResult;
-import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.base.util.Logger;
 import com.sean.android.example.domain.GettyImage;
 import com.sean.android.example.domain.GettyImages;
@@ -22,6 +21,7 @@ import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModelImpl;
+import com.sean.android.example.ui.main.viewmodel.GalleryViewType;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
 
 import java.util.ArrayList;
@@ -32,8 +32,6 @@ public class MainActivity extends BaseActivity {
     private static final int TRANSACTION_ID_GET_GETTYIMAGE = 1000;
 
     private GalleryRouter galleryRouter;
-
-    private GettyImages gettyImages;
 
     private GalleryViewModel galleryViewModel;
 
@@ -47,7 +45,7 @@ public class MainActivity extends BaseActivity {
 
         galleryRouter = new GalleryRouterImpl(this);
         galleryViewModel = new GalleryViewModelImpl(galleryRouter);
-        updateFragment(R.id.fragment, galleryViewModel);
+        bindViewFragment(R.id.fragment, galleryViewModel);
         executeBackgroundWork(TRANSACTION_ID_GET_GETTYIMAGE, new GettyImageBackgroundwork());
     }
 
@@ -56,7 +54,7 @@ public class MainActivity extends BaseActivity {
         super.onBackgroundWorkComplete(transactionId, results);
         if (transactionId == TRANSACTION_ID_GET_GETTYIMAGE) {
             HttpBackgroundResult<GettyImages> httpBackgroundResult = (HttpBackgroundResult) results.get(0).getResult();
-            gettyImages = httpBackgroundResult.getData();
+            GettyImages gettyImages = httpBackgroundResult.getData();
             Logger.d(this, "GettyImage count = [" + gettyImages.count() + "], [" + gettyImages.toString() + "]");
 
             List<GalleryItemViewModel> viewModels = new ArrayList<>();
@@ -72,8 +70,9 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem menuItem = menu.findItem(R.id.action_layout_type);
+        menuItem.setIcon(getMenuIconRes(galleryViewModel.getGalleryViewType()));
         return true;
     }
 
@@ -85,8 +84,9 @@ public class MainActivity extends BaseActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            ImageLoader.getInstance().clearCache();
+        if (id == R.id.action_layout_type) {
+            item.setIcon(getMenuIconRes(galleryViewModel.getGalleryViewType()));
+            bindViewFragment(R.id.fragment, galleryViewModel);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -97,13 +97,24 @@ public class MainActivity extends BaseActivity {
         super.onConfigurationChanged(newConfig);
     }
 
-    private void updateFragment(int id, Object param) {
+    private void bindViewFragment(int id, Object param) {
         Fragment fragment = getSupportFragmentManager().findFragmentById(id);
         if (fragment != null) {
             if (ViewBinder.class.isAssignableFrom(fragment.getClass())) {
                 ViewBinder viewBinder = (ViewBinder) fragment;
                 viewBinder.onBind(param);
             }
+        }
+    }
+
+    private int getMenuIconRes(GalleryViewType galleryViewType) {
+        switch (galleryViewType) {
+            case GRID:
+                return R.drawable.ic_action_grid;
+            case LIST:
+                return R.drawable.ic_action_list;
+            default:
+                return R.drawable.ic_action_grid;
         }
     }
 }

@@ -20,6 +20,10 @@ public interface GalleryViewModel {
 
     void setNotification(Notification notification);
 
+    void changeRecyclerViewMode();
+
+    GalleryViewType getGalleryViewType();
+
     interface Notification {
         void onNotifyItemInserted(int startPosition, int size);
 

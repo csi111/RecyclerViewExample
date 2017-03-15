@@ -3,7 +3,9 @@ package com.sean.android.example.ui.main;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +14,7 @@ import android.view.ViewGroup;
 import com.sean.android.example.R;
 import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
+import com.sean.android.example.ui.main.viewmodel.GalleryViewType;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
 
 /**
@@ -45,14 +48,31 @@ public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewM
         super.onViewCreated(view, savedInstanceState);
         recyclerView = (RecyclerView) view.findViewById(R.id.gallery_recyclerview);
         recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), SPAN_COUNT));
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.HORIZONTAL));
 
     }
 
     @Override
     public void onBind(GalleryViewModel galleryViewModel) {
-        galleryViewModel.setNotification(this);
-        this.galleryViewModel = galleryViewModel;
-        recyclerView.setAdapter(new GalleryAdapter(galleryViewModel));
+        if (this.galleryViewModel == null) {
+            galleryViewModel.setNotification(this);
+            this.galleryViewModel = galleryViewModel;
+        }
+
+        changeLayoutManager(this.galleryViewModel.getGalleryViewType());
+        recyclerView.setAdapter(new GalleryAdapter(this.galleryViewModel));
+    }
+
+    private void changeLayoutManager(GalleryViewType viewType) {
+        switch (viewType) {
+            case GRID:
+                recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), SPAN_COUNT));
+                break;
+            case LIST:
+                recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+                break;
+        }
     }
 
     @Override

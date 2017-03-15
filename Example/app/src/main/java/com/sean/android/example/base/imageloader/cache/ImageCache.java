@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.text.TextUtils;
 
 import com.sean.android.example.base.imageloader.ImageSize;
-import com.sean.android.example.base.imageloader.StorageUtil;
+import com.sean.android.example.base.imageloader.util.StorageUtil;
 import com.sean.android.example.base.imageloader.cache.disk.ImageDiskCache;
 import com.sean.android.example.base.imageloader.cache.disk.LruDiskCache;
 import com.sean.android.example.base.imageloader.cache.memory.ImageMemoryCache;

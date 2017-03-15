@@ -1,9 +1,12 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.task;
 
 import android.graphics.Bitmap;
+import android.widget.ImageView;
 
+import com.sean.android.example.base.imageloader.ImageInfo;
+import com.sean.android.example.base.imageloader.ImageLoadingListener;
 import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
-import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
+import com.sean.android.example.base.imageloader.view.ViewWrapper;
 
 /**
  * Created by sean on 2017. 3. 14..
@@ -12,18 +15,18 @@ import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
 public class DisplayImageTask implements Runnable {
 
     private final Bitmap bitmap;
-    private final ImageViewWrapper imageViewWrapper;
+    private final ViewWrapper<ImageView> imageViewWrapper;
     private final String uri;
-    private final String cacheKey;
+    private final String memoryCacheKey;
     private final ImageLoadingListener listener;
     private final ImageLoadExecutor imageLoadExecutor;
 
     public DisplayImageTask(Bitmap bitmap, ImageInfo imageInfo, ImageLoadExecutor imageLoadExecutor) {
         this.bitmap = bitmap;
-        this.imageViewWrapper = imageInfo.imageViewWrapper;
-        this.uri = imageInfo.uri;
-        this.cacheKey = imageInfo.memoryCacheKey;
-        this.listener = imageInfo.listener;
+        this.imageViewWrapper = imageInfo.getImageViewWrapper();
+        this.uri = imageInfo.getUri();
+        this.memoryCacheKey = imageInfo.getMemoryCacheKey();
+        this.listener = imageInfo.getLoadingListener();
         this.imageLoadExecutor = imageLoadExecutor;
     }
 
@@ -49,6 +52,6 @@ public class DisplayImageTask implements Runnable {
 
     private boolean isViewWasReused() {
         String currentCacheKey = imageLoadExecutor.getLoadingImage(imageViewWrapper);
-        return !cacheKey.equals(currentCacheKey);
+        return !memoryCacheKey.equals(currentCacheKey);
     }
 }

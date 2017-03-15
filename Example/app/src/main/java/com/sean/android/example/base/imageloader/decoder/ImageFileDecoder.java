@@ -7,6 +7,7 @@ import com.sean.android.example.base.imageloader.ImageSize;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -14,7 +15,7 @@ import java.io.InputStream;
  * Created by Seonil on 2017-03-15.
  */
 
-public class ImageFileDecoder implements ImageDecoder {
+public class ImageFileDecoder extends ImageDecoder {
 
     private static final int BUFFER_SIZE = 32 * 1024; // BufferedInputStream System Buffer Size
 
@@ -22,7 +23,7 @@ public class ImageFileDecoder implements ImageDecoder {
     public Bitmap decode(String imageUri, ImageSize imageResize) throws IOException {
         Bitmap decodeBitmap;
 
-        InputStream inputStream = getStreamFromFile(imageUri);
+        InputStream inputStream = getStream(imageUri);
 
         if (inputStream == null) {
             return null;
@@ -42,14 +43,22 @@ public class ImageFileDecoder implements ImageDecoder {
         return decodeBitmap;
     }
 
-    protected BitmapFactory.Options getDecodingOptions(ImageSize imageSize) {
+    @Override
+    protected InputStream getStream(String imageUri) {
+        String filePath = ImageType.getPathWithoutScheme(imageUri);
 
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = calculateInSampleSize(options, imageSize.getWidth(), imageSize.getHeight());
-        return options;
+        BufferedInputStream imageStream = null;
+        try {
+            imageStream = new BufferedInputStream(new FileInputStream(filePath), BUFFER_SIZE);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return imageStream;
     }
 
-    private InputStream resetStream(InputStream imageStream, String imageUri) throws IOException {
+
+
+    protected InputStream resetStream(InputStream imageStream, String imageUri) throws IOException {
         if (imageStream.markSupported()) {
             try {
                 imageStream.reset();
@@ -59,49 +68,9 @@ public class ImageFileDecoder implements ImageDecoder {
         }
 
         imageStream.close();
-        return getStreamFromFile(imageUri);
-    }
-
-    private InputStream getStreamFromFile(String imageUri) throws IOException {
-        String filePath = ImageType.getPathWithoutScheme(imageUri);
-
-        BufferedInputStream imageStream = new BufferedInputStream(new FileInputStream(filePath), BUFFER_SIZE);
-        return imageStream;
-    }
-
-    protected ImageSize defineImageSize(InputStream imageStream) throws IOException {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(imageStream, null, options);
-
-        return new ImageSize(options.outWidth, options.outHeight);
+        return getStream(imageUri);
     }
 
 
-    private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
 
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-
-            long totalPixels = width * height / inSampleSize;
-
-            final long totalReqPixelsCap = reqWidth * reqHeight * 2;
-
-            while (totalPixels > totalReqPixelsCap) {
-                inSampleSize *= 2;
-                totalPixels /= 2;
-            }
-        }
-        return inSampleSize;
-    }
 }

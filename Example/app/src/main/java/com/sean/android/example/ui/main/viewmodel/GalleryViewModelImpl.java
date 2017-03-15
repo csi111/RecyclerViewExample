@@ -16,10 +16,12 @@ public class GalleryViewModelImpl implements GalleryViewModel {
     private final GalleryRouter router;
 
     private Notification notification;
+    private GalleryViewType galleryViewType;
 
     public GalleryViewModelImpl(GalleryRouter galleryRouter) {
         this.galleryItemViewModels = new ArrayList<>();
         this.router = galleryRouter;
+        this.galleryViewType = GalleryViewType.GRID;
     }
 
     @Override
@@ -57,5 +59,15 @@ public class GalleryViewModelImpl implements GalleryViewModel {
     @Override
     public void setNotification(Notification notification) {
         this.notification = notification;
+    }
+
+    @Override
+    public void changeRecyclerViewMode() {
+        galleryViewType = GalleryViewType.GRID.equals(galleryViewType) ? GalleryViewType.LIST : GalleryViewType.GRID;
+    }
+
+    @Override
+    public GalleryViewType getGalleryViewType() {
+        return galleryViewType;
     }
 }

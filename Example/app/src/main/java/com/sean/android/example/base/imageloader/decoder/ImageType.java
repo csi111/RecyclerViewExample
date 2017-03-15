@@ -19,7 +19,17 @@ public enum ImageType {
 
     public static String getPathWithoutScheme(String uri) {
         ImageType imageType = findImageType(uri);
-        return uri.toLowerCase().replace(imageType.scheme, "");
+        return uri.replace(imageType.scheme, "");
+    }
+
+    public String getUrlWithScheme(String uri) {
+        if (uri.contains(scheme)) {
+            return uri;
+        }
+
+        StringBuilder stringBuilder = new StringBuilder(scheme);
+        stringBuilder.append(uri);
+        return stringBuilder.toString();
     }
 
     public static ImageType findImageType(String uri) {

@@ -28,6 +28,7 @@ public class ImageViewWrapper implements ViewWrapper<ImageView>{
         this.imageViewReference = new WeakReference<>(imageView);
     }
 
+    @Override
     public int getWidth() {
         ImageView imageView = imageViewReference.get();
 
@@ -53,6 +54,7 @@ public class ImageViewWrapper implements ViewWrapper<ImageView>{
         return 0;
     }
 
+    @Override
     public int getHeight() {
         ImageView imageView = imageViewReference.get();
 
@@ -84,45 +86,18 @@ public class ImageViewWrapper implements ViewWrapper<ImageView>{
         return imageViewReference.get();
     }
 
+    @Override
     public boolean isGarbageCollected() {
         return imageViewReference.get() == null;
     }
 
+    @Override
     public int getId() {
         ImageView imageView = imageViewReference.get();
         return imageView == null ? super.hashCode() : imageView.hashCode();
     }
 
-    public void setImageBitmap(Bitmap bitmap) {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            ImageView imageView = imageViewReference.get();
-
-            if (imageView != null) {
-                imageView.setImageBitmap(bitmap);
-            }
-        } else {
-            Logger.d(this, "ImageView must set Bitmap on MainThread!!!");
-        }
-    }
-
-    public void setImageDrawable(Drawable drawable) {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            ImageView imageView = imageViewReference.get();
-
-            if (imageView != null) {
-                imageView.setImageDrawable(drawable);
-            }
-
-            if (drawable instanceof AnimationDrawable) {
-                ((AnimationDrawable) drawable).start();
-            }
-        } else {
-            Logger.d(this, "ImageView must set Drawable on MainThread!!!");
-        }
-    }
-
-
-    private static int getImageViewFieldValue(Object object, String fieldName) {
+    private int getImageViewFieldValue(Object object, String fieldName) {
         int value = 0;
         try {
             Field field = ImageView.class.getDeclaredField(fieldName);

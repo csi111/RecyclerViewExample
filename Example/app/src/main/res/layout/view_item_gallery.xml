@@ -8,9 +8,11 @@
         android:id="@+id/item_imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:maxWidth="@dimen/gallery_image_max_width"
+        android:maxHeight="@dimen/gallery_image_max_width"
         android:adjustViewBounds="true"
-        android:scaleType="fitXY"
-        android:src="@drawable/default_no_image" />
+        android:scaleType="fitXY" />
 
     <LinearLayout
         android:id="@+id/informationView"

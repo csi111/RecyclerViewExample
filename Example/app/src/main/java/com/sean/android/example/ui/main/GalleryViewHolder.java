@@ -2,7 +2,9 @@ package com.sean.android.example.ui.main;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sean.android.example.R;
@@ -22,12 +24,14 @@ public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBi
 
     private TextView titleTextView;
     private ImageView galleryImageView;
+    private LinearLayout informationView;
 
     public GalleryViewHolder(View itemView, OnItemClickListener onItemClickListener) {
         super(itemView);
 
         titleTextView = (TextView) itemView.findViewById(R.id.item_title_textView);
         galleryImageView = (ImageView) itemView.findViewById(R.id.item_imageView);
+        informationView = (LinearLayout) itemView.findViewById(R.id.informationView);
 
         this.onItemClickListener = onItemClickListener;
     }
@@ -43,6 +47,7 @@ public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBi
         });
 
         titleTextView.setText(galleryItemViewModel.getTitle());
+        informationView.setVisibility(galleryItemViewModel.checkVisibleInformation() ? View.VISIBLE : View.INVISIBLE);
         ImageLoader.getInstance().loadImage(galleryItemViewModel.getImageUrl(), galleryImageView);
     }
 }

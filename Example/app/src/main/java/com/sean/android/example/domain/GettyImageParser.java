@@ -1,7 +1,5 @@
 package com.sean.android.example.domain;
 
-import com.sean.android.example.base.util.Logger;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,8 +28,6 @@ public class GettyImageParser {
 
 
     public void parse(String baseUri, InputStream in, GettyImages gettyImages) {
-        long startParsingTimeMills = System.currentTimeMillis();
-
         try {
             document = Jsoup.parse(in, "UTF-8", baseUri);
         } catch (IOException e) {
@@ -43,13 +39,9 @@ public class GettyImageParser {
             String srcPath = element.getElementsByClass(ELEMENT_CLASS_NAME_PICTURE).attr(ELEMENT_ATTRIBUTE_NAME_PICTURE);
             String linkUrl = element.select(ELEMENT_SELECT_CAPTION).attr(ELEMENT_ATTRIBUTE_NAME_LINK);
             String caption = element.select(ELEMENT_SELECT_CAPTION).text();
-//            Logger.d(this, "srcPath = [" + srcPath + "] linkUrl =[" + linkUrl + "] caption = [" + caption + "]");
             gettyImages.add(new GettyImage(baseUri, caption, linkUrl, srcPath));
 
         }
-
-        long endParsingTimeMills = System.currentTimeMillis();
-        Logger.d(this, "the end parsingTime = [" + endParsingTimeMills + "] cost Time = [" + (endParsingTimeMills - startParsingTimeMills) + "]");
 
     }
 

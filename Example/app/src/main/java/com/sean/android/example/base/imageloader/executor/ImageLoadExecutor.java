@@ -1,9 +1,9 @@
 package com.sean.android.example.base.imageloader.executor;
 
-import com.sean.android.example.base.imageloader.DisplayImageTask;
-import com.sean.android.example.base.imageloader.LoadImageTask;
+import com.sean.android.example.base.imageloader.task.DisplayImageTask;
+import com.sean.android.example.base.imageloader.task.LoadImageTask;
 import com.sean.android.example.base.imageloader.cache.ImageCache;
-import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
+import com.sean.android.example.base.imageloader.view.ViewWrapper;
 
 import java.io.File;
 import java.util.Collections;
@@ -109,15 +109,15 @@ public class ImageLoadExecutor {
         }
     }
 
-    public String getLoadingImage(ImageViewWrapper imageViewWrapper) {
+    public String getLoadingImage(ViewWrapper imageViewWrapper) {
         return cacheImages.get(imageViewWrapper.getId());
     }
 
-    public void prepareShowImageTask(ImageViewWrapper imageViewWrapper, String cacheKey) {
+    public void prepareShowImageTask(ViewWrapper imageViewWrapper, String cacheKey) {
         cacheImages.put(imageViewWrapper.getId(), cacheKey);
     }
 
-    public void cancelShowImageTask(ImageViewWrapper imageViewWrapper) {
+    public void cancelShowImageTask(ViewWrapper imageViewWrapper) {
         cacheImages.remove(imageViewWrapper.getId());
     }
 

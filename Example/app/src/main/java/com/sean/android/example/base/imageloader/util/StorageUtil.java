@@ -1,4 +1,4 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.util;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -16,7 +16,6 @@ import static android.os.Environment.MEDIA_MOUNTED;
 public class StorageUtil {
     private static final String EXTERNAL_STORAGE_PERMISSION = "android.permission.WRITE_EXTERNAL_STORAGE";
     private static final String DISK_CACHE_DIR = "IMAGE_CACHE";
-    private static final String FILE_SCHEME = "file://";
 
     private StorageUtil() {
 
@@ -83,16 +82,6 @@ public class StorageUtil {
     private static boolean hasExternalStoragePermission(Context context) {
         int perm = context.checkCallingOrSelfPermission(EXTERNAL_STORAGE_PERMISSION);
         return perm == PackageManager.PERMISSION_GRANTED;
-    }
-
-    public static String getFilePath(File file) {
-        StringBuilder stringBuilder = new StringBuilder(FILE_SCHEME);
-        stringBuilder.append(file.getAbsolutePath());
-        return stringBuilder.toString();
-    }
-
-    public static String getFilePathFromUri(String uri) {
-        return uri.substring(FILE_SCHEME.length());
     }
 
 }

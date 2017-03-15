@@ -1,21 +1,23 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.task;
 
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.widget.ImageView;
 
+import com.sean.android.example.base.imageloader.ImageInfo;
+import com.sean.android.example.base.imageloader.ImageLoadingListener;
+import com.sean.android.example.base.imageloader.ImageSize;
 import com.sean.android.example.base.imageloader.cache.ImageCache;
-import com.sean.android.example.base.imageloader.decoder.DefaultImageDecoder;
 import com.sean.android.example.base.imageloader.decoder.ImageDecoder;
-import com.sean.android.example.base.imageloader.decoder.ImageDecoderFactory;
-import com.sean.android.example.base.imageloader.decoder.ImageDecodingInfo;
+import com.sean.android.example.base.imageloader.decoder.ImageFileDecoder;
+import com.sean.android.example.base.imageloader.decoder.ImageType;
 import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
-import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
+import com.sean.android.example.base.imageloader.view.ViewWrapper;
 import com.sean.android.example.base.protocol.Client;
 import com.sean.android.example.base.protocol.ConnectException;
 import com.sean.android.example.base.protocol.RequestData;
 import com.sean.android.example.base.protocol.ResponseData;
 import com.sean.android.example.base.protocol.UrlConnectionClient;
-import com.sean.android.example.base.util.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,50 +42,44 @@ public class LoadImageTask implements Runnable {
 
     private ImageDecoder imageDecoder;
 
-    private ImageViewWrapper imageViewWrapper;
+    private ViewWrapper<ImageView> imageViewWrapper;
 
     private final String uri;
 
-    private final String cacheKey;
+    private final String memoryCacheKey;
 
     private final ImageLoadingListener imageLoadingListener;
-
-    private ImageLoadType imageLoadType = ImageLoadType.NETWORK;
 
     private final Handler handler;
 
     private final ImageSize imageSize;
 
-    private ImageDecoderFactory imageDecoderFactory;
-
     public LoadImageTask(ImageLoadExecutor imageLoadExecutor, ImageInfo imageInfo, Handler handler) {
         this.imageLoadExecutor = imageLoadExecutor;
         this.imageCache = imageLoadExecutor.getImageCache();
         this.imageInfo = imageInfo;
-        this.uri = imageInfo.uri;
+        this.uri = imageInfo.getUri();
         this.handler = handler;
-        this.cacheKey = imageInfo.memoryCacheKey;
-        this.imageSize = imageInfo.imageSize;
-        this.imageViewWrapper = imageInfo.imageViewWrapper;
-        this.imageLoadingListener = imageInfo.listener;
+        this.memoryCacheKey = imageInfo.getMemoryCacheKey();
+        this.imageSize = imageInfo.getImageSize();
+        this.imageViewWrapper = imageInfo.getImageViewWrapper();
+        this.imageLoadingListener = imageInfo.getLoadingListener();
 
-        imageDecoder = new DefaultImageDecoder();
-        imageDownloader = new UrlConnectionClient();
-        imageDecoderFactory = new ImageDecoderFactory();
+        this.imageDecoder = new ImageFileDecoder();
+        this.imageDownloader = new UrlConnectionClient();
     }
 
     @Override
     public void run() {
         if (isPaused()) return;
 
-
-        ReentrantLock loadFromUriLock = imageInfo.loadFromUriLock;
+        ReentrantLock loadFromUriLock = imageInfo.getLoadFromUriLock();
 
         loadFromUriLock.lock();
         Bitmap bitmap;
 
         try {
-            bitmap = imageCache.getBitmapFromMemCache(cacheKey);
+            bitmap = imageCache.getBitmapFromMemCache(memoryCacheKey);
 
             if (bitmap == null || bitmap.isRecycled()) {
                 bitmap = tryLoadBitmap();
@@ -95,12 +91,9 @@ public class LoadImageTask implements Runnable {
 
 
                 if (bitmap != null) { // Memory Caching
-                    imageCache.put(cacheKey, bitmap);
+                    imageCache.put(memoryCacheKey, bitmap);
                 }
-            } else {
-                imageLoadType = imageLoadType.MEMORY_CACHE;
             }
-
         } catch (Exception e) {
             fireCancelEvent();
             return;
@@ -136,21 +129,21 @@ public class LoadImageTask implements Runnable {
         try {
             File imageFile = imageCache.getFileFromDiskCache(uri);
             if (imageFile != null && imageFile.exists() && imageFile.length() > 0) {
-                imageLoadType = ImageLoadType.DISK_CACHE;
 
                 //Image Load from DiskCache;
 
                 checkTaskNotActual();
-                bitmap = decodeImage(StorageUtil.getFilePath(imageFile));
+
+
+                bitmap = decodeImage(ImageType.FILE.getUrlWithScheme(imageFile.getAbsolutePath()));
             }
             if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
-                imageLoadType = ImageLoadType.NETWORK;
                 //Image Load from Network;
 
                 tryCacheImageOnDisk();
                 imageFile = imageCache.getFileFromDiskCache(uri);
                 checkTaskNotActual();
-                bitmap = decodeImage(StorageUtil.getFilePath(imageFile));
+                bitmap = decodeImage(ImageType.FILE.getUrlWithScheme(imageFile.getAbsolutePath()));
 
                 if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
                     fireFailEvent(null);
@@ -220,12 +213,7 @@ public class LoadImageTask implements Runnable {
         String currentCacheKey = imageLoadExecutor.getLoadingImage(imageViewWrapper);
         // Check whether memory cache key (image URI) for current ImageAware is actual.
         // If ImageAware is reused for another task then current task should be cancelled.
-
-        if (currentCacheKey == null) {
-            Logger.d(this, "CurrentCacheKey is null");
-        }
-
-        boolean imageViewWrapperReused = !cacheKey.equals(currentCacheKey);
+        boolean imageViewWrapperReused = !memoryCacheKey.equals(currentCacheKey);
         if (imageViewWrapperReused) {
             return true;
         }
@@ -297,15 +285,7 @@ public class LoadImageTask implements Runnable {
 
     }
 
-
     private Bitmap decodeImage(String imageUri) throws IOException {
-        ImageDecodingInfo imageDecodingInfo = new ImageDecodingInfo(cacheKey, imageUri, uri, imageSize);
-        return imageDecoder.decode(imageDecodingInfo);
+        return imageDecoder.decode(imageUri, imageSize);
     }
-
-    private class TaskException extends Exception {
-
-    }
-
-
 }

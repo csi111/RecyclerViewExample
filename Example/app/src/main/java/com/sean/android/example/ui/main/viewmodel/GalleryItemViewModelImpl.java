@@ -58,6 +58,6 @@ public class GalleryItemViewModelImpl implements GalleryItemViewModel {
 
     @Override
     public boolean checkVisibleInformation() {
-        return TextUtils.isEmpty(gettyImage.getName());
+        return !TextUtils.isEmpty(gettyImage.getName());
     }
 }
