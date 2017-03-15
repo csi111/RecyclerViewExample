@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@drawable/default_no_image" />
 
     <LinearLayout
         android:id="@+id/informationView"
@@ -23,8 +23,8 @@
             android:id="@+id/item_title_textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="right"
             android:ellipsize="end"
+            android:gravity="right"
             android:lines="1"
             android:textColor="#ffffff"
             android:textSize="@dimen/gallery_title_text_size" />

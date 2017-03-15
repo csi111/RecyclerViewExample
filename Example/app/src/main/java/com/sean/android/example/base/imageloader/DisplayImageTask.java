@@ -2,6 +2,9 @@ package com.sean.android.example.base.imageloader;
 
 import android.graphics.Bitmap;
 
+import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
+import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
+
 /**
  * Created by sean on 2017. 3. 14..
  */
@@ -31,9 +34,15 @@ public class DisplayImageTask implements Runnable {
         } else if (isViewWasReused()) {
             listener.onLoadingCancelled(uri, imageViewWrapper.getWrappedView());
         } else {
-            imageViewWrapper.getWrappedView().setImageBitmap(bitmap);
-            imageLoadExecutor.cancelShowImageTask(imageViewWrapper);
-            listener.onLoadingComplete(uri, imageViewWrapper.getWrappedView(), bitmap);
+            imageViewWrapper.getWrappedView().post(new Runnable() {
+                @Override
+                public void run() {
+                    imageViewWrapper.getWrappedView().setImageBitmap(bitmap);
+                    imageLoadExecutor.cancelShowImageTask(imageViewWrapper);
+                    listener.onLoadingComplete(uri, imageViewWrapper.getWrappedView(), bitmap);
+                }
+            });
+
         }
 
     }

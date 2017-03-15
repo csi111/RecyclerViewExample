@@ -1,14 +1,16 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.decoder;
+
+import com.sean.android.example.base.imageloader.ImageSize;
 
 /**
  * Created by Seonil on 2017-03-14.
  */
 
 public class ImageDecodingInfo {
-    final String imageKey;
-    final String imageUri;
-    final String originalImageUri;
-    final ImageSize imageSize;
+    private final String imageKey;
+    private final String imageUri;
+    private final String originalImageUri;
+    private final ImageSize imageSize;
 
 
     public ImageDecodingInfo(String imageKey, String imageUri, String originalImageUri, ImageSize imageSize) {

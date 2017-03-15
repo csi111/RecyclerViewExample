@@ -12,13 +12,14 @@ import com.sean.android.example.api.GettyImageBackgroundwork;
 import com.sean.android.example.base.activity.BaseActivity;
 import com.sean.android.example.base.asynctask.BackgroundWorker;
 import com.sean.android.example.base.asynctask.HttpBackgroundResult;
+import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.base.util.Logger;
 import com.sean.android.example.domain.GettyImage;
 import com.sean.android.example.domain.GettyImages;
 import com.sean.android.example.ui.main.router.GalleryRouter;
 import com.sean.android.example.ui.main.router.GalleryRouterImpl;
-import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
+import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
@@ -53,7 +54,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onBackgroundWorkComplete(int transactionId, List<BackgroundWorker.BackgroundWorkResult> results) {
         super.onBackgroundWorkComplete(transactionId, results);
-        if(transactionId == TRANSACTION_ID_GET_GETTYIMAGE) {
+        if (transactionId == TRANSACTION_ID_GET_GETTYIMAGE) {
             HttpBackgroundResult<GettyImages> httpBackgroundResult = (HttpBackgroundResult) results.get(0).getResult();
             gettyImages = httpBackgroundResult.getData();
             Logger.d(this, "GettyImage count = [" + gettyImages.count() + "], [" + gettyImages.toString() + "]");
@@ -67,7 +68,6 @@ public class MainActivity extends BaseActivity {
             galleryViewModel.addAll(viewModels);
 
         }
-
     }
 
     @Override
@@ -86,9 +86,9 @@ public class MainActivity extends BaseActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            ImageLoader.getInstance().clearCache();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -99,9 +99,9 @@ public class MainActivity extends BaseActivity {
 
     private void updateFragment(int id, Object param) {
         Fragment fragment = getSupportFragmentManager().findFragmentById(id);
-        if(fragment != null) {
+        if (fragment != null) {
             if (ViewBinder.class.isAssignableFrom(fragment.getClass())) {
-                ViewBinder viewBinder= (ViewBinder) fragment;
+                ViewBinder viewBinder = (ViewBinder) fragment;
                 viewBinder.onBind(param);
             }
         }

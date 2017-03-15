@@ -3,9 +3,13 @@ package com.sean.android.example.base.imageloader;
 import android.graphics.Bitmap;
 import android.os.Handler;
 
-import com.sean.android.example.base.imageloader.cache.MemoryCache;
-import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
-import com.sean.android.example.base.imageloader.cache.disk.LruDiskCache;
+import com.sean.android.example.base.imageloader.cache.ImageCache;
+import com.sean.android.example.base.imageloader.decoder.DefaultImageDecoder;
+import com.sean.android.example.base.imageloader.decoder.ImageDecoder;
+import com.sean.android.example.base.imageloader.decoder.ImageDecoderFactory;
+import com.sean.android.example.base.imageloader.decoder.ImageDecodingInfo;
+import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
+import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
 import com.sean.android.example.base.protocol.Client;
 import com.sean.android.example.base.protocol.ConnectException;
 import com.sean.android.example.base.protocol.RequestData;
@@ -23,15 +27,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by Seonil on 2017-03-13.
  */
 
-public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
+public class LoadImageTask implements Runnable {
 
 
     private ImageLoadExecutor imageLoadExecutor;
 
     private ImageInfo imageInfo;
 
-    private MemoryCache memoryCache;
-    private DiskCache diskCache;
+    private ImageCache imageCache;
 
     private Client imageDownloader;
 
@@ -51,10 +54,11 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
 
     private final ImageSize imageSize;
 
+    private ImageDecoderFactory imageDecoderFactory;
+
     public LoadImageTask(ImageLoadExecutor imageLoadExecutor, ImageInfo imageInfo, Handler handler) {
         this.imageLoadExecutor = imageLoadExecutor;
-        this.memoryCache = imageLoadExecutor.memoryCache;
-        this.diskCache = imageLoadExecutor.diskCache;
+        this.imageCache = imageLoadExecutor.getImageCache();
         this.imageInfo = imageInfo;
         this.uri = imageInfo.uri;
         this.handler = handler;
@@ -65,6 +69,7 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
 
         imageDecoder = new DefaultImageDecoder();
         imageDownloader = new UrlConnectionClient();
+        imageDecoderFactory = new ImageDecoderFactory();
     }
 
     @Override
@@ -78,9 +83,7 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
         Bitmap bitmap;
 
         try {
-            bitmap = memoryCache.get(cacheKey);
-
-
+            bitmap = imageCache.getBitmapFromMemCache(cacheKey);
 
             if (bitmap == null || bitmap.isRecycled()) {
                 bitmap = tryLoadBitmap();
@@ -92,11 +95,9 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
 
 
                 if (bitmap != null) { // Memory Caching
-                    Logger.d(this, "CacheKey =[" + cacheKey + "], Put Bitmap into MemoryCache");
-                    memoryCache.put(cacheKey, bitmap);
+                    imageCache.put(cacheKey, bitmap);
                 }
             } else {
-                Logger.d(this, "CacheKey =[" + cacheKey + "], Get Bitmap from MemoryCache");
                 imageLoadType = imageLoadType.MEMORY_CACHE;
             }
 
@@ -133,19 +134,21 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
     private Bitmap tryLoadBitmap() throws TaskException {
         Bitmap bitmap = null;
         try {
-            File imageFile = diskCache.get(uri);
+            File imageFile = imageCache.getFileFromDiskCache(uri);
             if (imageFile != null && imageFile.exists() && imageFile.length() > 0) {
                 imageLoadType = ImageLoadType.DISK_CACHE;
+
+                //Image Load from DiskCache;
 
                 checkTaskNotActual();
                 bitmap = decodeImage(StorageUtil.getFilePath(imageFile));
             }
             if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
                 imageLoadType = ImageLoadType.NETWORK;
+                //Image Load from Network;
 
-                //TODO Save DiskCache
                 tryCacheImageOnDisk();
-                imageFile = diskCache.get(uri);
+                imageFile = imageCache.getFileFromDiskCache(uri);
                 checkTaskNotActual();
                 bitmap = decodeImage(StorageUtil.getFilePath(imageFile));
 
@@ -261,45 +264,43 @@ public class LoadImageTask implements Runnable, LruDiskCache.DiskCopyListener {
     }
 
     private boolean tryCacheImageOnDisk() throws TaskException {
+        boolean loaded = false;
+        InputStream inputStream = null;
 
-        boolean loaded;
+
         try {
-            loaded = downloadImage();
+            inputStream = downloadImage();
+            loaded = imageCache.save(uri, inputStream);
         } catch (IOException e) {
             loaded = false;
             fireFailEvent(e.getCause());
         } catch (ConnectException e) {
             fireFailEvent(e.getCause());
             loaded = false;
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    loaded = false;
+                    fireFailEvent(e.getCause());
+                }
+            }
         }
         return loaded;
     }
 
-    private boolean downloadImage() throws ConnectException, IOException {
+    private InputStream downloadImage() throws ConnectException, IOException {
         ResponseData responseData = imageDownloader.call(new RequestData(uri, null));
-        InputStream is = responseData.getResponseBody().in();
+        InputStream inputStream = responseData.getResponseBody().in();
+        return inputStream;
 
-        if (is == null) {
-            return false;
-        } else {
-            try {
-                return diskCache.save(uri, is, this);
-            } finally {
-                is.close();
-            }
-        }
     }
 
 
     private Bitmap decodeImage(String imageUri) throws IOException {
         ImageDecodingInfo imageDecodingInfo = new ImageDecodingInfo(cacheKey, imageUri, uri, imageSize);
         return imageDecoder.decode(imageDecodingInfo);
-    }
-
-
-    @Override
-    public boolean bytesCopied(int current, int total) {
-        return true;
     }
 
     private class TaskException extends Exception {

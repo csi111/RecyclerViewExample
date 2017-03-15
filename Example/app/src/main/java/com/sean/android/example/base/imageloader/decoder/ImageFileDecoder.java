@@ -1,36 +1,39 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.decoder;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.sean.android.example.base.imageloader.ImageSize;
+
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by Seonil on 2017-03-14.
+ * Created by Seonil on 2017-03-15.
  */
 
-public class DefaultImageDecoder implements ImageDecoder {
+public class ImageFileDecoder implements ImageDecoder {
 
-    private static final int BUFFER_SIZE = 32 * 1024;
+    private static final int BUFFER_SIZE = 32 * 1024; // BufferedInputStream System Buffer Size
 
     @Override
-    public Bitmap decode(ImageDecodingInfo imageDecodingInfo) throws IOException {
+    public Bitmap decode(String imageUri, ImageSize imageResize) throws IOException {
         Bitmap decodeBitmap;
 
-        InputStream inputStream = getStreamFromFile(imageDecodingInfo.imageUri);
+        InputStream inputStream = getStreamFromFile(imageUri);
 
         if (inputStream == null) {
             return null;
         }
 
         try {
-            ImageSize imageResize = defineImageSize(inputStream, imageDecodingInfo);
-            inputStream = resetStream(inputStream, imageDecodingInfo);
-            BitmapFactory.Options options = getDecodingOptions(imageResize, imageDecodingInfo);
+            if (imageResize == null) {
+                imageResize = defineImageSize(inputStream);
+            }
+            inputStream = resetStream(inputStream, imageUri);
+            BitmapFactory.Options options = getDecodingOptions(imageResize);
             decodeBitmap = BitmapFactory.decodeStream(inputStream, null, options);
         } finally {
             inputStream.close();
@@ -39,14 +42,14 @@ public class DefaultImageDecoder implements ImageDecoder {
         return decodeBitmap;
     }
 
-    protected BitmapFactory.Options getDecodingOptions(ImageSize imageSize, ImageDecodingInfo decodingInfo) {
+    protected BitmapFactory.Options getDecodingOptions(ImageSize imageSize) {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = calculateInSampleSize(options, imageSize.getWidth(), imageSize.getHeight());
         return options;
     }
 
-    private InputStream resetStream(InputStream imageStream, ImageDecodingInfo imageDecodingInfo) throws IOException {
+    private InputStream resetStream(InputStream imageStream, String imageUri) throws IOException {
         if (imageStream.markSupported()) {
             try {
                 imageStream.reset();
@@ -54,18 +57,19 @@ public class DefaultImageDecoder implements ImageDecoder {
             } catch (IOException ignored) {
             }
         }
+
         imageStream.close();
-        return getStreamFromFile(imageDecodingInfo.imageUri);
+        return getStreamFromFile(imageUri);
     }
 
     private InputStream getStreamFromFile(String imageUri) throws IOException {
-        String filePath = StorageUtil.getFilePathFromUri(imageUri);
+        String filePath = ImageType.getPathWithoutScheme(imageUri);
 
         BufferedInputStream imageStream = new BufferedInputStream(new FileInputStream(filePath), BUFFER_SIZE);
-        return new ContentLengthInputStream(imageStream, (int) new File(filePath).length());
+        return imageStream;
     }
 
-    protected ImageSize defineImageSize(InputStream imageStream, ImageDecodingInfo decodingInfo) throws IOException {
+    protected ImageSize defineImageSize(InputStream imageStream) throws IOException {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(imageStream, null, options);

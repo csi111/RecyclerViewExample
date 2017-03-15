@@ -1,6 +1,5 @@
 package com.sean.android.example.ui.main;
 
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
@@ -8,8 +7,6 @@ import android.widget.TextView;
 
 import com.sean.android.example.R;
 import com.sean.android.example.base.imageloader.ImageLoader;
-import com.sean.android.example.base.imageloader.ImageLoadingListener;
-import com.sean.android.example.base.util.Logger;
 import com.sean.android.example.base.view.OnItemClickListener;
 import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
@@ -46,26 +43,6 @@ public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBi
         });
 
         titleTextView.setText(galleryItemViewModel.getTitle());
-        ImageLoader.getInstance().loadImage(galleryItemViewModel.getImageUrl(), galleryImageView, new ImageLoadingListener() {
-            @Override
-            public void onLoadingStarted(String imageUri) {
-                Logger.d(this, "Image Loading Started uri =[" + imageUri + "]");
-            }
-
-            @Override
-            public void onLoadingComplete(String imageUri, ImageView imageView, Bitmap loadedImage) {
-                Logger.d(this, "Image Loading Complete uri =[" + imageUri + "]");
-            }
-
-            @Override
-            public void onLoadingFailed(String imageUri, ImageView imageView, Throwable cause) {
-                Logger.d(this, "Image Loading Failed uri =[" + imageUri + "]");
-            }
-
-            @Override
-            public void onLoadingCancelled(String imageUri, ImageView imageView) {
-                Logger.d(this, "Image Loading Cancelled uri =[" + imageUri + "]");
-            }
-        });
+        ImageLoader.getInstance().loadImage(galleryItemViewModel.getImageUrl(), galleryImageView);
     }
 }

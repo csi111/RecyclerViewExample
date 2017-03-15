@@ -8,13 +8,10 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.widget.ImageView;
 
-import com.sean.android.example.base.imageloader.cache.LruMemoryCache;
-import com.sean.android.example.base.imageloader.cache.MemoryCache;
-import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
-import com.sean.android.example.base.imageloader.cache.disk.LruDiskCache;
+import com.sean.android.example.base.imageloader.cache.ImageCache;
+import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
+import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
 import com.sean.android.example.base.util.Logger;
-
-import java.io.File;
 
 /**
  * Created by Seonil on 2017-03-13.
@@ -26,13 +23,12 @@ public class ImageLoader {
 
     private ImageLoadingListener defaultImageListener;
 
-    private MemoryCache memoryCache;
-    private DiskCache diskCache;
-
+    private ImageCache imageCache;
     private ImageLoadExecutor imageLoadExecutor;
 
 
     private ImageLoader() {
+        imageCache = new ImageCache();
         defaultImageListener = new DefaultImageLoadingListener();
     }
 
@@ -45,17 +41,13 @@ public class ImageLoader {
     }
 
     public synchronized void init(Context context) {
-        if (memoryCache == null) {
-            memoryCache = new LruMemoryCache();
-        }
-
-        if (diskCache == null) {
-            File diskCacheDirectory = StorageUtil.getDiskCacheDirectory(context);
-            diskCache = new LruDiskCache(diskCacheDirectory);
-        }
-
-        imageLoadExecutor = new ImageLoadExecutor(memoryCache, diskCache);
+        imageCache.init(context);
+        imageLoadExecutor = new ImageLoadExecutor(imageCache);
         maxImageSize = getMaxImageSize(context);
+    }
+
+    public void loadImage(String uri, ImageView imageView) {
+        loadImage(uri, new ImageViewWrapper(imageView), new DefaultImageLoadingListener());
     }
 
 
@@ -97,28 +89,21 @@ public class ImageLoader {
         imageLoadingListener.onLoadingStarted(uri);
 
 
-        Bitmap bitmap = memoryCache.get(memoryCacheKey);
+        Bitmap bitmap = imageCache.getBitmapFromMemCache(memoryCacheKey);
 
         ImageInfo imageInfo = new ImageInfo(uri, memoryCacheKey, imageViewWrapper, imageLoadingListener, imageSize, imageLoadExecutor.getLockForUri(uri));
-        if(bitmap != null && !bitmap.isRecycled()) {
-            //TODO Bitmap From MemoryCache
-            Logger.d(this, "CacheKey =[" + memoryCacheKey + "], Get Bitmap from MemoryCache");
+        if (bitmap != null && !bitmap.isRecycled()) {
             DisplayImageTask displayImageTask = new DisplayImageTask(bitmap, imageInfo, imageLoadExecutor);
             imageLoadExecutor.submit(displayImageTask);
         } else {
-            //TODO Bitmap From DiskCache or Network
             LoadImageTask loadImageTask = new LoadImageTask(imageLoadExecutor, imageInfo, getHandler());
             imageLoadExecutor.submit(loadImageTask);
         }
 
     }
 
-    public void clearMemoryCache() {
-        memoryCache.clear();
-    }
-
-    public void clearDiskCache() {
-        diskCache.clear();
+    public void clearCache() {
+        imageCache.clear();
     }
 
     public void cancelImageTask(ImageViewWrapper imageViewWrapper) {
@@ -142,7 +127,7 @@ public class ImageLoader {
     }
 
     public void destroy() {
-        diskCache.close();
+        imageCache.close();
         imageLoadExecutor = null;
     }
 

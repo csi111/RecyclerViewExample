@@ -1,7 +1,9 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.executor;
 
-import com.sean.android.example.base.imageloader.cache.MemoryCache;
-import com.sean.android.example.base.imageloader.cache.disk.DiskCache;
+import com.sean.android.example.base.imageloader.DisplayImageTask;
+import com.sean.android.example.base.imageloader.LoadImageTask;
+import com.sean.android.example.base.imageloader.cache.ImageCache;
+import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
 
 import java.io.File;
 import java.util.Collections;
@@ -29,32 +31,30 @@ public class ImageLoadExecutor {
     private final Map<Integer, String> cacheImages;
     private final Map<String, ReentrantLock> uriLocks;
 
-    Executor imageLoadExecutor;
-    Executor imageLoadExecutorForCachedImage; // 고정된 Thread갯수를 가진 Threadpool
-    Executor imageLoadDistributor; // 동적 Threadpool
+    private Executor imageLoadExecutor; // Network통신을 통한 Image Bitmap Load & Display Threadpool
+    private Executor imageLoadExecutorForCachedImage; // Cache Image Bitmap Load & Display Threadpool
+    private Executor imageLoadDistributor; // CachingData 존재 여부 확인 후 각 Threadpool에게 Task 할당
 
     private AtomicBoolean isPause = new AtomicBoolean(false);
     private final Object pauseLock = new Object();
 
-    MemoryCache memoryCache;
-    DiskCache diskCache;
+    private ImageCache imageCache;
 
 
-    public ImageLoadExecutor(MemoryCache memoryCache, DiskCache diskCache) {
-        this.memoryCache = memoryCache;
-        this.diskCache = diskCache;
+    public ImageLoadExecutor(ImageCache imageCache) {
+        this.imageCache = imageCache;
         cacheImages = Collections.synchronizedMap(new HashMap<Integer, String>());
-        uriLocks = new WeakHashMap<String, ReentrantLock>();
+        uriLocks = new WeakHashMap<>();
         initializeLoadTask();
         imageLoadDistributor = createCachedExecutor();
 
     }
 
-    void submit(final LoadImageTask task) {
+    public void submit(final LoadImageTask task) {
         imageLoadDistributor.execute(new Runnable() {
             @Override
             public void run() {
-                File imageFile = diskCache.get(task.getUri());
+                File imageFile = imageCache.getFileFromDiskCache(task.getUri());
                 boolean isImageCache = (imageFile != null && imageFile.exists() && (imageFile.length() > 0));
                 resetExecutorIfNeed();
                 if (isImageCache) {
@@ -66,7 +66,7 @@ public class ImageLoadExecutor {
         });
     }
 
-    void submit(final DisplayImageTask task) {
+    public void submit(final DisplayImageTask task) {
         resetExecutorIfNeed();
         imageLoadExecutorForCachedImage.execute(task);
     }
@@ -92,33 +92,32 @@ public class ImageLoadExecutor {
         }
     }
 
-    void stop() {
+    public void stop() {
         ((ExecutorService) imageLoadExecutor).shutdownNow();
         ((ExecutorService) imageLoadExecutorForCachedImage).shutdownNow();
-
         cacheImages.clear();
     }
 
-    void pause() {
+    public void pause() {
         isPause.set(true);
     }
 
-    void resume() {
+    public void resume() {
         isPause.set(false);
         synchronized (pauseLock) {
             pauseLock.notifyAll();
         }
     }
 
-    String getLoadingImage(ImageViewWrapper imageViewWrapper) {
+    public String getLoadingImage(ImageViewWrapper imageViewWrapper) {
         return cacheImages.get(imageViewWrapper.getId());
     }
 
-    void prepareShowImageTask(ImageViewWrapper imageViewWrapper, String cacheKey) {
+    public void prepareShowImageTask(ImageViewWrapper imageViewWrapper, String cacheKey) {
         cacheImages.put(imageViewWrapper.getId(), cacheKey);
     }
 
-    void cancelShowImageTask(ImageViewWrapper imageViewWrapper) {
+    public void cancelShowImageTask(ImageViewWrapper imageViewWrapper) {
         cacheImages.remove(imageViewWrapper.getId());
     }
 
@@ -140,8 +139,11 @@ public class ImageLoadExecutor {
         return pauseLock;
     }
 
+    public ImageCache getImageCache() {
+        return imageCache;
+    }
 
-    ReentrantLock getLockForUri(String uri) {
+    public ReentrantLock getLockForUri(String uri) {
         ReentrantLock lock = uriLocks.get(uri);
 
         if (lock == null) {

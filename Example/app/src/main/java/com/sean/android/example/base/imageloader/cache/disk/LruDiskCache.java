@@ -16,24 +16,20 @@ import java.io.OutputStream;
  * Created by Seonil on 2017-03-13.
  */
 
-public class LruDiskCache implements DiskCache {
+public class LruDiskCache implements ImageDiskCache {
 
     private static final int DISK_CACHE_SIZE = 1024 * 1024 * 10;
     private static final int DISK_CACHE_COUNT = Integer.MAX_VALUE;
     private DiskLruCache lruDiskCache;
-
-    private File diskCacheDir;
-
     private static final Bitmap.CompressFormat DEFAULT_COMPRESS_FORMAT = Bitmap.CompressFormat.PNG;
     private static final int DEFAULT_COMPRESS_QUALITY = 100;
     private static final int DEFAULT_BUFFER_SIZE = 32 * 1024;
     private static final int DEFAULT_IMAGE_TOTAL_SIZE = 500 * 1024;
-    private static final int FORCE_CACHED_PERCENTAGE = 90;
 
-
-    private int bufferSize = DEFAULT_BUFFER_SIZE;
+    private File diskCacheDir;
 
     private Bitmap.CompressFormat compressFormat = DEFAULT_COMPRESS_FORMAT;
+    private int bufferSize = DEFAULT_BUFFER_SIZE;
     private int compressQuality = DEFAULT_COMPRESS_QUALITY;
     private int diskCacheSize = DISK_CACHE_SIZE;
     private int diskCacheCount = DISK_CACHE_COUNT;
@@ -72,14 +68,23 @@ public class LruDiskCache implements DiskCache {
     }
 
     @Override
-    public boolean save(String imageUri, InputStream imageStream, DiskCopyListener diskCopyListener) throws IOException {
+    public void put(String imageUri, Bitmap bitmap) {
+        try {
+            save(imageUri, bitmap);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean save(String imageUri, InputStream imageStream) throws IOException {
         DiskLruCache.Editor editor = lruDiskCache.edit(getKey(imageUri));
 
         if (editor != null) {
             OutputStream outputStream = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
             boolean isCopied = false;
             try {
-                isCopied = copyStream(imageStream, outputStream, diskCopyListener, bufferSize);
+                isCopied = copyStream(imageStream, outputStream, bufferSize);
             } finally {
                 outputStream.close();
 
@@ -96,7 +101,7 @@ public class LruDiskCache implements DiskCache {
     }
 
     @Override
-    public boolean save(String imageUri, Bitmap bitmap, DiskCopyListener diskCopyListener) throws IOException {
+    public boolean save(String imageUri, Bitmap bitmap) throws IOException {
         DiskLruCache.Editor editor = lruDiskCache.edit(getKey(imageUri));
         OutputStream outputStream = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
         if (editor != null) {
@@ -158,7 +163,7 @@ public class LruDiskCache implements DiskCache {
     }
 
 
-    private static boolean copyStream(InputStream is, OutputStream os, DiskCopyListener listener, int bufferSize) throws IOException {
+    private static boolean copyStream(InputStream is, OutputStream os, int bufferSize) throws IOException {
         int current = 0;
         int total = is.available();
         if (total <= 0) {
@@ -167,26 +172,12 @@ public class LruDiskCache implements DiskCache {
 
         final byte[] bytes = new byte[bufferSize];
         int count;
-        if (shouldStopLoading(listener, current, total)) return false;
         while ((count = is.read(bytes, 0, bufferSize)) != -1) {
             os.write(bytes, 0, count);
             current += count;
-            if (shouldStopLoading(listener, current, total)) return false;
         }
         os.flush();
         return true;
-    }
-
-    private static boolean shouldStopLoading(DiskCopyListener listener, int current, int total) {
-        if (listener != null) {
-            boolean shouldContinue = listener.bytesCopied(current, total);
-            if (!shouldContinue) {
-                if ((100 * current / total) < FORCE_CACHED_PERCENTAGE) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public static File getDiskCacheDir(Context context, String uniqueName) {
@@ -230,9 +221,4 @@ public class LruDiskCache implements DiskCache {
     public void setCompressQuality(int compressQuality) {
         this.compressQuality = compressQuality;
     }
-
-    public static interface DiskCopyListener {
-        boolean bytesCopied(int current, int total);
-    }
-
 }

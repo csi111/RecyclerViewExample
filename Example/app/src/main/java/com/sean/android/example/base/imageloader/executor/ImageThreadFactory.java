@@ -1,4 +1,4 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.executor;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +23,7 @@ public class ImageThreadFactory implements ThreadFactory {
         StringBuilder stringBuilder = new StringBuilder(threadName);
         stringBuilder.append(threadNumber.getAndIncrement());
 
-        Thread thread = new Thread(threadGroup, runnable, stringBuilder.toString(), 0);
+        Thread thread = new Thread(threadGroup, runnable);
 
         if (thread.isDaemon()) {
             thread.setDaemon(false);

@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sean.android.example.R;
+import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
 
@@ -52,6 +53,16 @@ public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewM
         galleryViewModel.setNotification(this);
         this.galleryViewModel = galleryViewModel;
         recyclerView.setAdapter(new GalleryAdapter(galleryViewModel));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override

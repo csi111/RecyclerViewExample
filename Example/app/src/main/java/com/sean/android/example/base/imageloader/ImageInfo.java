@@ -1,5 +1,7 @@
 package com.sean.android.example.base.imageloader;
 
+import com.sean.android.example.base.imageloader.view.ImageViewWrapper;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 /**

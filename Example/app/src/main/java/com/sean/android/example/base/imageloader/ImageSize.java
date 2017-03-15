@@ -27,14 +27,6 @@ public class ImageSize {
         return height;
     }
 
-    public ImageSize scaleDown(int sampleSize) {
-        return new ImageSize(width / sampleSize, height / sampleSize);
-    }
-
-    public ImageSize scale(float scale) {
-        return new ImageSize((int) (width * scale), (int) (height * scale));
-    }
-
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

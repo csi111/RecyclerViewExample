@@ -1,4 +1,4 @@
-package com.sean.android.example.base.imageloader;
+package com.sean.android.example.base.imageloader.view;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
@@ -17,7 +17,7 @@ import java.lang.reflect.Field;
  * Created by Seonil on 2017-03-13.
  */
 
-public class ImageViewWrapper {
+public class ImageViewWrapper implements ViewWrapper<ImageView>{
     private Reference<ImageView> imageViewReference;
 
     public ImageViewWrapper(ImageView imageView) {
@@ -78,6 +78,8 @@ public class ImageViewWrapper {
         return 0;
     }
 
+
+    @Override
     public ImageView getWrappedView() {
         return imageViewReference.get();
     }

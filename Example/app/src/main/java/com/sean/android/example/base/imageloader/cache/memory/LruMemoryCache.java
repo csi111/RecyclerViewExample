@@ -1,4 +1,4 @@
-package com.sean.android.example.base.imageloader.cache;
+package com.sean.android.example.base.imageloader.cache.memory;
 
 import android.graphics.Bitmap;
 import android.util.LruCache;
@@ -7,7 +7,7 @@ import android.util.LruCache;
  * Created by Seonil on 2017-03-13.
  */
 
-public class LruMemoryCache implements MemoryCache {
+public class LruMemoryCache implements ImageMemoryCache {
     private static final int CACHE_SIZE = 10 * 1024 * 1024;
 
     private LruCache<String, Bitmap> bitmapLruCache;
@@ -46,11 +46,16 @@ public class LruMemoryCache implements MemoryCache {
     }
 
     @Override
-    public Bitmap remove(String key) {
+    public void remove(String key) {
         if (key == null) {
             throw new NullPointerException("key must not be null!!!");
         }
-        return bitmapLruCache.get(key);
+        bitmapLruCache.remove(key);
+    }
+
+    @Override
+    public void close() {
+        //Do nothing
     }
 
     @Override
