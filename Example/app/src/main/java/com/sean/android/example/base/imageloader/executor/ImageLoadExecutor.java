@@ -25,7 +25,12 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 
 public class ImageLoadExecutor {
-    public static final int THREAD_POOL_SIZE = 4;
+
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+
+    private static final int CORE_POOL_SIZE = Math.max(2, Math.min(CPU_COUNT - 1, 4));
+
+
     public static final int THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
 
     private final Map<Integer, String> cacheImages;
@@ -123,7 +128,7 @@ public class ImageLoadExecutor {
 
     private Executor createExecutor() {
         BlockingQueue<Runnable> blockingQueue = new LinkedBlockingDeque<>();
-        return new ThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 0, TimeUnit.MILLISECONDS, blockingQueue, new ImageThreadFactory(THREAD_PRIORITY, "image_pool_executor"));
+        return new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, blockingQueue, new ImageThreadFactory(THREAD_PRIORITY, "image_pool_executor"));
     }
 
     private Executor createCachedExecutor() {

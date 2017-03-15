@@ -32,6 +32,8 @@ public class ImageLoader {
     private Drawable loadingImage = null;
     private Drawable failedImage = null;
 
+    private boolean showImageBeforeLoading = false;
+
 
     private ImageLoader() {
         imageCache = new ImageCache();
@@ -104,7 +106,7 @@ public class ImageLoader {
 
 
         ImageInfo imageInfo = new ImageInfo(uri, memoryCacheKey, imageViewWrapper, imageLoadingListener, imageSize, imageLoadExecutor.getLockForUri(uri));
-        if (loadingImage != null) {
+        if (showImageBeforeLoading && loadingImage != null) {
             imageViewWrapper.getWrappedView().post(new Runnable() {
                 @Override
                 public void run() {
@@ -167,6 +169,10 @@ public class ImageLoader {
 
     public void setFailedImage(Drawable failedImage) {
         this.failedImage = failedImage;
+    }
+
+    public void setShowImageBeforeLoading(boolean showImageBeforeLoading) {
+        this.showImageBeforeLoading = showImageBeforeLoading;
     }
 
     private Handler getHandler() {
