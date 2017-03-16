@@ -22,7 +22,6 @@ import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModelImpl;
-import com.sean.android.example.ui.main.viewmodel.GalleryViewType;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
 
 import java.util.ArrayList;
@@ -47,6 +46,7 @@ public class MainActivity extends BaseActivity {
         galleryRouter = new GalleryRouterImpl(this);
         galleryViewModel = new GalleryViewModelImpl(galleryRouter);
         bindViewFragment(R.id.fragment, galleryViewModel);
+        bindNotification(galleryViewModel, getNotificationFromFragment(R.id.fragment));
         executeBackgroundWork(TRANSACTION_ID_GET_GETTYIMAGE, new GettyImageBackgroundwork());
     }
 
@@ -73,7 +73,7 @@ public class MainActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         MenuItem menuItem = menu.findItem(R.id.action_layout_type);
-        menuItem.setIcon(getMenuIconRes(galleryViewModel.getGalleryViewType()));
+        menuItem.setIcon(galleryViewModel.displayGalleryModeMenuIcon());
         return true;
     }
 
@@ -87,10 +87,9 @@ public class MainActivity extends BaseActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_layout_type) {
             galleryViewModel.changeRecyclerViewMode();
-            item.setIcon(getMenuIconRes(galleryViewModel.getGalleryViewType()));
-            bindViewFragment(R.id.fragment, galleryViewModel);
+            item.setIcon(galleryViewModel.displayGalleryModeMenuIcon());
             return true;
-        } else if(id == R.id.action_refresh) {
+        } else if (id == R.id.action_refresh) {
             ImageLoader.getInstance().clearCache();
         }
         return super.onOptionsItemSelected(item);
@@ -111,16 +110,24 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private int getMenuIconRes(GalleryViewType galleryViewType) {
-        switch (galleryViewType) {
-            case GRID:
-                return R.drawable.ic_action_grid;
-            case LIST:
-                return R.drawable.ic_action_list;
-            default:
-                return R.drawable.ic_action_grid;
+    private void bindNotification(GalleryViewModel galleryViewModel, GalleryViewModel.Notification notification) {
+        if (notification != null) {
+            galleryViewModel.setNotification(notification);
         }
     }
+
+    private GalleryViewModel.Notification getNotificationFromFragment(int id) {
+        Fragment fragment = getSupportFragmentManager().findFragmentById(id);
+        if (fragment != null) {
+            if (GalleryViewModel.Notification.class.isAssignableFrom(fragment.getClass())) {
+                return (GalleryViewModel.Notification) fragment;
+            }
+        }
+
+        return null;
+    }
+
+
 }
 
 

@@ -22,7 +22,7 @@ public interface GalleryViewModel {
 
     void changeRecyclerViewMode();
 
-    GalleryViewType getGalleryViewType();
+    int displayGalleryModeMenuIcon();
 
     interface Notification {
         void onNotifyItemInserted(int startPosition, int size);
@@ -30,6 +30,8 @@ public interface GalleryViewModel {
         void onNotifyItemInserted(int position);
 
         void onNotifyItemRemoved(int position);
+
+        void onChangedLayoutType(GalleryViewType galleryViewType);
 
     }
 }

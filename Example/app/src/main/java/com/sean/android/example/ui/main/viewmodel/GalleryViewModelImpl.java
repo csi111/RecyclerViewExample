@@ -1,5 +1,6 @@
 package com.sean.android.example.ui.main.viewmodel;
 
+import com.sean.android.example.R;
 import com.sean.android.example.ui.main.router.GalleryRouter;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class GalleryViewModelImpl implements GalleryViewModel {
     @Override
     public void add(GalleryItemViewModel galleryItemViewModel) {
         galleryItemViewModels.add(galleryItemViewModel);
-        if(notification != null) {
+        if (notification != null) {
             notification.onNotifyItemInserted(galleryItemViewModels.indexOf(galleryItemViewModel));
         }
     }
@@ -51,7 +52,7 @@ public class GalleryViewModelImpl implements GalleryViewModel {
     public void addAll(Collection<GalleryItemViewModel> galleryItemViewModels) {
         int currentCount = this.galleryItemViewModels.size();
         this.galleryItemViewModels.addAll(galleryItemViewModels);
-        if(notification != null) {
+        if (notification != null) {
             notification.onNotifyItemInserted(currentCount, this.galleryItemViewModels.size());
         }
     }
@@ -64,10 +65,24 @@ public class GalleryViewModelImpl implements GalleryViewModel {
     @Override
     public void changeRecyclerViewMode() {
         galleryViewType = GalleryViewType.GRID.equals(galleryViewType) ? GalleryViewType.LIST : GalleryViewType.GRID;
+        if (notification != null) {
+            notification.onChangedLayoutType(galleryViewType);
+        }
     }
 
     @Override
-    public GalleryViewType getGalleryViewType() {
-        return galleryViewType;
+    public int displayGalleryModeMenuIcon() {
+        return getMenuIconRes();
+    }
+
+    private int getMenuIconRes() {
+        switch (galleryViewType) {
+            case GRID:
+                return R.drawable.ic_action_grid;
+            case LIST:
+                return R.drawable.ic_action_list;
+            default:
+                return R.drawable.ic_action_grid;
+        }
     }
 }

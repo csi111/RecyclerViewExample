@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sean.android.example.R;
-import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewType;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
@@ -24,8 +23,6 @@ import com.sean.android.example.ui.main.viewmodel.ViewBinder;
  */
 public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewModel>, GalleryViewModel.Notification {
     private static final int SPAN_COUNT = 5;
-
-    private GalleryViewModel galleryViewModel;
 
     private RecyclerView recyclerView;
 
@@ -53,13 +50,9 @@ public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewM
 
     @Override
     public void onBind(GalleryViewModel galleryViewModel) {
-        if (this.galleryViewModel == null) {
-            galleryViewModel.setNotification(this);
-            this.galleryViewModel = galleryViewModel;
+        if (galleryViewModel != null) {
+            recyclerView.setAdapter(new GalleryAdapter(galleryViewModel));
         }
-
-        changeLayoutManager(this.galleryViewModel.getGalleryViewType());
-        recyclerView.setAdapter(new GalleryAdapter(this.galleryViewModel));
     }
 
     private void changeLayoutManager(GalleryViewType viewType) {
@@ -96,5 +89,10 @@ public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewM
     @Override
     public void onNotifyItemRemoved(int position) {
         recyclerView.getAdapter().notifyItemRemoved(position);
+    }
+
+    @Override
+    public void onChangedLayoutType(GalleryViewType galleryViewType) {
+        changeLayoutManager(galleryViewType);
     }
 }
