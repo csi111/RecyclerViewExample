@@ -12,6 +12,7 @@ import com.sean.android.example.api.GettyImageBackgroundwork;
 import com.sean.android.example.base.activity.BaseActivity;
 import com.sean.android.example.base.asynctask.BackgroundWorker;
 import com.sean.android.example.base.asynctask.HttpBackgroundResult;
+import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.base.util.Logger;
 import com.sean.android.example.domain.GettyImage;
 import com.sean.android.example.domain.GettyImages;
@@ -85,9 +86,12 @@ public class MainActivity extends BaseActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_layout_type) {
+            galleryViewModel.changeRecyclerViewMode();
             item.setIcon(getMenuIconRes(galleryViewModel.getGalleryViewType()));
             bindViewFragment(R.id.fragment, galleryViewModel);
             return true;
+        } else if(id == R.id.action_refresh) {
+            ImageLoader.getInstance().clearCache();
         }
         return super.onOptionsItemSelected(item);
     }

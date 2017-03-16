@@ -1,10 +1,6 @@
 package com.sean.android.example.base.imageloader.cache.disk;
 
-import android.annotation.TargetApi;
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Build;
-import android.os.Environment;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -24,7 +20,6 @@ public class LruDiskCache implements ImageDiskCache {
     private static final Bitmap.CompressFormat DEFAULT_COMPRESS_FORMAT = Bitmap.CompressFormat.PNG;
     private static final int DEFAULT_COMPRESS_QUALITY = 100;
     private static final int DEFAULT_BUFFER_SIZE = 32 * 1024;
-    private static final int DEFAULT_IMAGE_TOTAL_SIZE = 500 * 1024;
 
     private File diskCacheDir;
 
@@ -163,62 +158,21 @@ public class LruDiskCache implements ImageDiskCache {
     }
 
 
-    private static boolean copyStream(InputStream is, OutputStream os, int bufferSize) throws IOException {
-        int current = 0;
-        int total = is.available();
-        if (total <= 0) {
-            total = DEFAULT_IMAGE_TOTAL_SIZE;
-        }
-
+    private boolean copyStream(InputStream is, OutputStream os, int bufferSize) throws IOException {
         final byte[] bytes = new byte[bufferSize];
         int count;
         while ((count = is.read(bytes, 0, bufferSize)) != -1) {
             os.write(bytes, 0, count);
-            current += count;
         }
         os.flush();
         return true;
     }
 
-    public static File getDiskCacheDir(Context context, String uniqueName) {
-        // Check if media is mounted or storage is built-in, if so, try and use external cache dir
-        // otherwise use internal cache dir
-        final String cachePath =
-                Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
-                        !isExternalStorageRemovable() ? getExternalCacheDir(context).getPath() :
-                        context.getCacheDir().getPath();
-
-        return new File(cachePath + File.separator + uniqueName);
-    }
-
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-    public static boolean isExternalStorageRemovable() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-            return Environment.isExternalStorageRemovable();
-        }
-        return true;
-    }
-
-    @TargetApi(Build.VERSION_CODES.FROYO)
-    public static File getExternalCacheDir(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-            return context.getExternalCacheDir();
-        }
-
-        // Before Froyo we need to construct the external cache dir ourselves
-        final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
-        return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
-    }
-
-    public void setBufferSize(int bufferSize) {
-        this.bufferSize = bufferSize;
-    }
-
-    public void setCompressFormat(Bitmap.CompressFormat defaultCompressFormat) {
-        this.compressFormat = defaultCompressFormat;
-    }
-
     public void setCompressQuality(int compressQuality) {
         this.compressQuality = compressQuality;
+    }
+
+    public void setCompressFormat(Bitmap.CompressFormat compressFormat) {
+        this.compressFormat = compressFormat;
     }
 }

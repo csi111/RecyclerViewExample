@@ -2,7 +2,7 @@ package com.sean.android.example.base.imageloader.decoder;
 
 /**
  * Created by Seonil on 2017-03-15.
- * Do not used
+ * Do not use
  */
 
 public class ImageDecoderFactory implements DecoderFactory {

@@ -9,6 +9,7 @@ import java.io.InputStream;
 
 /**
  * Created by Seonil on 2017-03-15.
+ * Do not use
  */
 
 public class DefaultImageDecoder extends ImageDecoder {

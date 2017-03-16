@@ -23,7 +23,7 @@ import com.sean.android.example.ui.main.viewmodel.ViewBinder;
  * http://www.gettyimagesgallery.com/collections/archive/slim-aarons.aspx
  */
 public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewModel>, GalleryViewModel.Notification {
-    private static final int SPAN_COUNT = 2;
+    private static final int SPAN_COUNT = 5;
 
     private GalleryViewModel galleryViewModel;
 
@@ -35,7 +35,6 @@ public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewM
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
     }
 
     @Override
@@ -50,7 +49,6 @@ public class GalleryFragment extends Fragment implements ViewBinder<GalleryViewM
         recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), SPAN_COUNT));
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.HORIZONTAL));
-
     }
 
     @Override

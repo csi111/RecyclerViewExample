@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">GettyImage</string>
-    <string name="action_grid">Grid</string>
-    <string name="action_list">List</string>
+    <string name="action_type">Type</string>
+    <string name="action_refresh">Refresh</string>
 </resources>

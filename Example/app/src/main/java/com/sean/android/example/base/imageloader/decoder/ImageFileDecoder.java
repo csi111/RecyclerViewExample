@@ -17,7 +17,7 @@ import java.io.InputStream;
 
 public class ImageFileDecoder extends ImageDecoder {
 
-    private static final int BUFFER_SIZE = 32 * 1024; // BufferedInputStream System Buffer Size
+    private static final int BUFFER_SIZE = 32 * 1024; // BufferedInputStream default 8kb... changed System Buffer Size
 
     @Override
     public Bitmap decode(String imageUri, ImageSize imageResize) throws IOException {

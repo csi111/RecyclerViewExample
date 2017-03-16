@@ -102,7 +102,7 @@ public class LoadImageTask implements Runnable {
         }
 
         DisplayImageTask displayBitmapTask = new DisplayImageTask(bitmap, imageInfo, imageLoadExecutor);
-        runTask(displayBitmapTask, false, handler);
+        runTask(displayBitmapTask, handler);
     }
 
 
@@ -228,7 +228,7 @@ public class LoadImageTask implements Runnable {
                 imageLoadingListener.onLoadingFailed(uri, imageViewWrapper.getWrappedView(), failCause);
             }
         };
-        runTask(r, false, handler);
+        runTask(r, handler);
     }
 
     private void fireCancelEvent() {
@@ -239,16 +239,12 @@ public class LoadImageTask implements Runnable {
                 imageLoadingListener.onLoadingCancelled(uri, imageViewWrapper.getWrappedView());
             }
         };
-        runTask(r, false, handler);
+        runTask(r, handler);
     }
 
 
-    static void runTask(Runnable r, boolean sync, Handler handler) {
-        if (sync) {
-            r.run();
-        } else {
-            handler.post(r);
-        }
+    private void runTask(Runnable r, Handler handler) {
+        handler.post(r);
     }
 
     private boolean tryCacheImageOnDisk() throws TaskException {
