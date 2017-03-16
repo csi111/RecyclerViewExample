@@ -98,6 +98,7 @@ public class ImageViewWrapper implements ViewWrapper<ImageView>{
     }
 
     private int getImageViewFieldValue(Object object, String fieldName) {
+        // getMaxWidth(), getMaxHeight() required os version 16 current min os version 15
         int value = 0;
         try {
             Field field = ImageView.class.getDeclaredField(fieldName);

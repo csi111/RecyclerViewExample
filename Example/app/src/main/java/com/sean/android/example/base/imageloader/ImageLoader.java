@@ -9,7 +9,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.widget.ImageView;
 
-import com.sean.android.example.base.imageloader.cache.ImageCache;
+import com.sean.android.example.base.imageloader.cache.ImageCacheManager;
 import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
 import com.sean.android.example.base.imageloader.task.DisplayImageTask;
 import com.sean.android.example.base.imageloader.task.LoadImageTask;
@@ -24,9 +24,9 @@ public class ImageLoader {
 
     private ImageSize maxImageSize;
 
-    private ImageLoadingListener defaultImageListener;
+    private ImageLoadingListener loadingListener;
 
-    private ImageCache imageCache;
+    private ImageCacheManager imageCacheManager;
     private ImageLoadExecutor imageLoadExecutor;
 
     private Drawable loadingImage = null;
@@ -36,8 +36,8 @@ public class ImageLoader {
 
 
     private ImageLoader() {
-        imageCache = new ImageCache();
-        defaultImageListener = new ImageLoadingListenerProxy();
+        imageCacheManager = new ImageCacheManager();
+        loadingListener = new ImageLoadingListenerProxy();
     }
 
     public static ImageLoader getInstance() {
@@ -49,8 +49,8 @@ public class ImageLoader {
     }
 
     public synchronized void init(Context context) {
-        imageCache.init(context);
-        imageLoadExecutor = new ImageLoadExecutor(imageCache);
+        imageCacheManager.init(context);
+        imageLoadExecutor = new ImageLoadExecutor(imageCacheManager);
         maxImageSize = getDefaultMaxImageSize(context);
     }
 
@@ -74,7 +74,7 @@ public class ImageLoader {
         }
 
         if (imageLoadingListener == null) {
-            imageLoadingListener = defaultImageListener;
+            imageLoadingListener = loadingListener;
         }
 
 
@@ -82,7 +82,9 @@ public class ImageLoader {
             imageViewWrapper.getWrappedView().post(new Runnable() {
                 @Override
                 public void run() {
-                    ((ImageView) imageViewWrapper.getWrappedView()).setImageDrawable(failedImage);
+                    if(!imageViewWrapper.isGarbageCollected()) {
+                        ((ImageView) imageViewWrapper.getWrappedView()).setImageDrawable(failedImage);
+                    }
                 }
             });
             imageLoadExecutor.cancelShowImageTask(imageViewWrapper);
@@ -102,23 +104,27 @@ public class ImageLoader {
         imageLoadingListener.onLoadingStarted(uri);
 
 
-        Bitmap bitmap = imageCache.getBitmapFromMemCache(memoryCacheKey);
+        Bitmap bitmap = imageCacheManager.getBitmapFromMemCache(memoryCacheKey);
 
 
-        ImageInfo imageInfo = new ImageInfo(uri, memoryCacheKey, imageViewWrapper, imageLoadingListener, imageSize, imageLoadExecutor.getLockForUri(uri));
+        ImageInfo imageInfo = new ImageInfo(uri, memoryCacheKey, imageViewWrapper, imageLoadingListener, imageSize);
         if (showImageBeforeLoading && loadingImage != null) {
             imageViewWrapper.getWrappedView().post(new Runnable() {
                 @Override
                 public void run() {
-                    ((ImageView) imageViewWrapper.getWrappedView()).setImageDrawable(loadingImage);
+                    if(!imageViewWrapper.isGarbageCollected()) {
+                        ((ImageView) imageViewWrapper.getWrappedView()).setImageDrawable(loadingImage);
+                    }
                 }
             });
         }
 
         if (bitmap != null && !bitmap.isRecycled()) {
+            //Memory
             DisplayImageTask displayImageTask = new DisplayImageTask(bitmap, imageInfo, imageLoadExecutor);
             imageLoadExecutor.submit(displayImageTask);
         } else {
+            //Disk or Network
             LoadImageTask loadImageTask = new LoadImageTask(imageLoadExecutor, imageInfo, getHandler());
             imageLoadExecutor.submit(loadImageTask);
         }
@@ -135,7 +141,7 @@ public class ImageLoader {
     }
 
     public void clearCache() {
-        imageCache.clear();
+        imageCacheManager.clear();
     }
 
     public void cancelImageTask(ViewWrapper imageViewWrapper) {
@@ -159,7 +165,7 @@ public class ImageLoader {
     }
 
     public void destroy() {
-        imageCache.close();
+        imageCacheManager.close();
         imageLoadExecutor = null;
     }
 

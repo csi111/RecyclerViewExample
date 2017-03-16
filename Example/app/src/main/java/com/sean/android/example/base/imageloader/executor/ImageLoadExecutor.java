@@ -1,15 +1,14 @@
 package com.sean.android.example.base.imageloader.executor;
 
+import com.sean.android.example.base.imageloader.cache.ImageCacheManager;
 import com.sean.android.example.base.imageloader.task.DisplayImageTask;
 import com.sean.android.example.base.imageloader.task.LoadImageTask;
-import com.sean.android.example.base.imageloader.cache.ImageCache;
 import com.sean.android.example.base.imageloader.view.ViewWrapper;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +17,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Seonil on 2017-03-13.
@@ -34,22 +32,20 @@ public class ImageLoadExecutor {
     public static final int THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
 
     private final Map<Integer, String> cacheImages;
-    private final Map<String, ReentrantLock> uriLocks;
 
-    private Executor imageLoadExecutor; // Network통신을 통한 Image Bitmap Load & Display Threadpool
-    private Executor imageLoadExecutorForCachedImage; // Cache Image Bitmap Load & Display Threadpool
-    private Executor imageLoadDistributor; // CachingData 존재 여부 확인 후 각 Threadpool에게 Task 할당
+    private Executor imageLoadExecutor; // Network통신을 통한 Image Bitmap Load & Display Threadpool Priority less than distributor
+    private Executor imageLoadExecutorForCachedImage; // Cache Image Bitmap Load & Display Threadpool Priority less than distributor
+    private Executor imageLoadDistributor; // CachingData 존재 여부 확인 후 각 Threadpool에게 Task 할당 Priority Normal(5)
 
     private AtomicBoolean isPause = new AtomicBoolean(false);
-    private final Object pauseLock = new Object();
+    private final Object pauseLock = new Object(); //Task에 대한 명시적 synchronized Lock Object
 
-    private ImageCache imageCache;
+    private ImageCacheManager imageCacheManager;
 
 
-    public ImageLoadExecutor(ImageCache imageCache) {
-        this.imageCache = imageCache;
+    public ImageLoadExecutor(ImageCacheManager imageCacheManager) {
+        this.imageCacheManager = imageCacheManager;
         cacheImages = Collections.synchronizedMap(new HashMap<Integer, String>());
-        uriLocks = new WeakHashMap<>();
         initializeLoadTask();
         imageLoadDistributor = createCachedExecutor();
 
@@ -59,7 +55,7 @@ public class ImageLoadExecutor {
         imageLoadDistributor.execute(new Runnable() {
             @Override
             public void run() {
-                File imageFile = imageCache.getFileFromDiskCache(task.getUri());
+                File imageFile = imageCacheManager.getFileFromDiskCache(task.getUri());
                 boolean isImageCache = (imageFile != null && imageFile.exists() && (imageFile.length() > 0));
                 resetExecutorIfNeed();
                 if (isImageCache) {
@@ -128,11 +124,11 @@ public class ImageLoadExecutor {
 
     private Executor createExecutor() {
         BlockingQueue<Runnable> blockingQueue = new LinkedBlockingDeque<>();
-        return new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, blockingQueue, new ImageThreadFactory(THREAD_PRIORITY, "image_pool_executor"));
+        return new ThreadPoolExecutor(CORE_POOL_SIZE, CORE_POOL_SIZE, 0, TimeUnit.MILLISECONDS, blockingQueue, new ImageThreadFactory(THREAD_PRIORITY));
     }
 
     private Executor createCachedExecutor() {
-        return Executors.newCachedThreadPool(new ImageThreadFactory(Thread.NORM_PRIORITY, "image_pool_dynamic_executor"));
+        return Executors.newCachedThreadPool(new ImageThreadFactory(Thread.NORM_PRIORITY));
     }
 
 
@@ -144,17 +140,8 @@ public class ImageLoadExecutor {
         return pauseLock;
     }
 
-    public ImageCache getImageCache() {
-        return imageCache;
+    public ImageCacheManager getImageCacheManager() {
+        return imageCacheManager;
     }
 
-    public ReentrantLock getLockForUri(String uri) {
-        ReentrantLock lock = uriLocks.get(uri);
-
-        if (lock == null) {
-            lock = new ReentrantLock();
-            uriLocks.put(uri, lock);
-        }
-        return lock;
-    }
 }

@@ -40,9 +40,13 @@ public class DisplayImageTask implements Runnable {
             imageViewWrapper.getWrappedView().post(new Runnable() {
                 @Override
                 public void run() {
-                    imageViewWrapper.getWrappedView().setImageBitmap(bitmap);
+                    if(!imageViewWrapper.isGarbageCollected()) {
+                        imageViewWrapper.getWrappedView().setImageBitmap(bitmap);
+                        listener.onLoadingComplete(uri, imageViewWrapper.getWrappedView(), bitmap);
+                    } else {
+                        listener.onLoadingFailed(uri, imageViewWrapper.getWrappedView(), null);
+                    }
                     imageLoadExecutor.cancelShowImageTask(imageViewWrapper);
-                    listener.onLoadingComplete(uri, imageViewWrapper.getWrappedView(), bitmap);
                 }
             });
 

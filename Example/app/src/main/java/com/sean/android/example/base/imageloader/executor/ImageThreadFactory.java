@@ -9,20 +9,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ImageThreadFactory implements ThreadFactory {
 
-    private static final AtomicInteger threadPoolNumber = new AtomicInteger(1);
-
     private final int threadPriority;
     private ThreadGroup threadGroup;
 
-    private final String threadName;
-    private final AtomicInteger threadNumber = new AtomicInteger(1);
-
     @Override
     public Thread newThread(Runnable runnable) {
-
-        StringBuilder stringBuilder = new StringBuilder(threadName);
-        stringBuilder.append(threadNumber.getAndIncrement());
-
         Thread thread = new Thread(threadGroup, runnable);
 
         if (thread.isDaemon()) {
@@ -34,9 +25,8 @@ public class ImageThreadFactory implements ThreadFactory {
     }
 
 
-    public ImageThreadFactory(int threadPriority, String threadName) {
+    public ImageThreadFactory(int threadPriority) {
         this.threadPriority = threadPriority;
-        this.threadName = threadName + threadPoolNumber.getAndIncrement() + "_thread";
         threadGroup = Thread.currentThread().getThreadGroup();
     }
 }

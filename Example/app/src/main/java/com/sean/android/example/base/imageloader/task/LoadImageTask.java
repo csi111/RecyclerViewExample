@@ -7,7 +7,7 @@ import android.widget.ImageView;
 import com.sean.android.example.base.imageloader.ImageInfo;
 import com.sean.android.example.base.imageloader.ImageLoadingListener;
 import com.sean.android.example.base.imageloader.ImageSize;
-import com.sean.android.example.base.imageloader.cache.ImageCache;
+import com.sean.android.example.base.imageloader.cache.ImageCacheManager;
 import com.sean.android.example.base.imageloader.decoder.ImageDecoder;
 import com.sean.android.example.base.imageloader.decoder.ImageFileDecoder;
 import com.sean.android.example.base.imageloader.decoder.ImageType;
@@ -36,7 +36,7 @@ public class LoadImageTask implements Runnable {
 
     private ImageInfo imageInfo;
 
-    private ImageCache imageCache;
+    private ImageCacheManager imageCacheManager;
 
     private Client imageDownloader;
 
@@ -56,7 +56,7 @@ public class LoadImageTask implements Runnable {
 
     public LoadImageTask(ImageLoadExecutor imageLoadExecutor, ImageInfo imageInfo, Handler handler) {
         this.imageLoadExecutor = imageLoadExecutor;
-        this.imageCache = imageLoadExecutor.getImageCache();
+        this.imageCacheManager = imageLoadExecutor.getImageCacheManager();
         this.imageInfo = imageInfo;
         this.uri = imageInfo.getUri();
         this.handler = handler;
@@ -71,15 +71,12 @@ public class LoadImageTask implements Runnable {
 
     @Override
     public void run() {
-        if (isPaused()) return;
+        if (isPaused()) return; //ThreadExecutor(Pool)의 현재 상태(pause / resume) check
 
-        ReentrantLock loadFromUriLock = imageInfo.getLoadFromUriLock();
-
-        loadFromUriLock.lock();
         Bitmap bitmap;
 
         try {
-            bitmap = imageCache.getBitmapFromMemCache(memoryCacheKey);
+            bitmap = imageCacheManager.getBitmapFromMemCache(memoryCacheKey);
 
             if (bitmap == null || bitmap.isRecycled()) {
                 bitmap = tryLoadBitmap();
@@ -91,14 +88,12 @@ public class LoadImageTask implements Runnable {
 
 
                 if (bitmap != null) { // Memory Caching
-                    imageCache.put(memoryCacheKey, bitmap);
+                    imageCacheManager.put(memoryCacheKey, bitmap);
                 }
             }
         } catch (Exception e) {
             fireCancelEvent();
             return;
-        } finally {
-            loadFromUriLock.unlock();
         }
 
         DisplayImageTask displayBitmapTask = new DisplayImageTask(bitmap, imageInfo, imageLoadExecutor);
@@ -127,7 +122,7 @@ public class LoadImageTask implements Runnable {
     private Bitmap tryLoadBitmap() throws TaskException {
         Bitmap bitmap = null;
         try {
-            File imageFile = imageCache.getFileFromDiskCache(uri);
+            File imageFile = imageCacheManager.getFileFromDiskCache(uri);
             if (imageFile != null && imageFile.exists() && imageFile.length() > 0) {
 
                 //Image Load from DiskCache;
@@ -141,7 +136,7 @@ public class LoadImageTask implements Runnable {
                 //Image Load from Network;
 
                 tryCacheImageOnDisk();
-                imageFile = imageCache.getFileFromDiskCache(uri);
+                imageFile = imageCacheManager.getFileFromDiskCache(uri);
                 checkTaskNotActual();
                 bitmap = decodeImage(ImageType.FILE.getUrlWithScheme(imageFile.getAbsolutePath()));
 
@@ -211,8 +206,6 @@ public class LoadImageTask implements Runnable {
 
     private boolean isViewReused() {
         String currentCacheKey = imageLoadExecutor.getLoadingImage(imageViewWrapper);
-        // Check whether memory cache key (image URI) for current ImageAware is actual.
-        // If ImageAware is reused for another task then current task should be cancelled.
         boolean imageViewWrapperReused = !memoryCacheKey.equals(currentCacheKey);
         if (imageViewWrapperReused) {
             return true;
@@ -254,7 +247,7 @@ public class LoadImageTask implements Runnable {
 
         try {
             inputStream = downloadImage();
-            loaded = imageCache.save(uri, inputStream);
+            loaded = imageCacheManager.save(uri, inputStream);
         } catch (IOException e) {
             loaded = false;
             fireFailEvent(e.getCause());

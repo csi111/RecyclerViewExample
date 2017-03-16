@@ -18,15 +18,13 @@ public class ImageInfo {
     private final ViewWrapper<ImageView> imageViewWrapper;
     private final ImageLoadingListener listener;
     private final ImageSize imageSize;
-    private final ReentrantLock loadFromUriLock;
 
-    public ImageInfo(String uri, String memoryCacheKey, ViewWrapper imageViewWrapper, ImageLoadingListener listener, ImageSize imageSize, ReentrantLock loadFromUriLock) {
+    public ImageInfo(String uri, String memoryCacheKey, ViewWrapper imageViewWrapper, ImageLoadingListener listener, ImageSize imageSize) {
         this.uri = uri;
         this.memoryCacheKey = memoryCacheKey;
         this.imageViewWrapper = imageViewWrapper;
         this.listener = listener;
         this.imageSize = imageSize;
-        this.loadFromUriLock = loadFromUriLock;
     }
 
 
@@ -50,7 +48,4 @@ public class ImageInfo {
         return imageSize;
     }
 
-    public ReentrantLock getLoadFromUriLock() {
-        return loadFromUriLock;
-    }
 }

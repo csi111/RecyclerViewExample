@@ -18,12 +18,12 @@ import java.io.InputStream;
  * Created by Seonil on 2017-03-15.
  */
 
-public class ImageCache {
+public class ImageCacheManager {
     private ImageDiskCache imageDiskCache;
     private ImageMemoryCache imageMemoryCache;
 
 
-    public ImageCache() {
+    public ImageCacheManager() {
     }
 
     public synchronized void init(Context context) {
