@@ -9,6 +9,9 @@ import java.util.List;
 
 public class HttpRequest {
 
+
+
+
     private final Client client;
     private final RequestData requestData;
 

@@ -13,6 +13,10 @@ import java.util.Map;
  */
 
 public class UrlConnectionClient implements Client {
+
+    static final int CONNECT_TIMEOUT_MILLS = 25 * 1000; //25s
+    static final int READ_TIMEOUT_MILLS = 30 * 1000; //30s
+
     private static final int CHUNK_SIZE = 2048;
 
     @Override
@@ -30,8 +34,8 @@ public class UrlConnectionClient implements Client {
 
     protected HttpURLConnection openConnection(RequestData requestData) throws IOException {
         HttpURLConnection httpURLConnection = (HttpURLConnection) requestData.getURL().openConnection();
-        httpURLConnection.setConnectTimeout(Defines.CONNECT_TIMEOUT_MILLS);
-        httpURLConnection.setReadTimeout(Defines.READ_TIMEOUT_MILLS);
+        httpURLConnection.setConnectTimeout(CONNECT_TIMEOUT_MILLS);
+        httpURLConnection.setReadTimeout(READ_TIMEOUT_MILLS);
         return httpURLConnection;
     }
 
