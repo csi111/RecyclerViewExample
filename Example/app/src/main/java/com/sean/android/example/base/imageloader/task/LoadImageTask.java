@@ -91,7 +91,7 @@ public class LoadImageTask implements Runnable {
                     imageCacheManager.put(memoryCacheKey, bitmap);
                 }
             }
-        } catch (Exception e) {
+        } catch (TaskException e) {
             fireCancelEvent();
             return;
         }
