@@ -12,12 +12,13 @@ import com.sean.android.example.base.imageloader.ImageLoader;
 import com.sean.android.example.base.view.OnItemClickListener;
 import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModel;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
+import com.sean.android.example.ui.main.viewmodel.ViewModel;
 
 /**
  * Created by sean on 2017. 3. 11..
  */
 
-public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBinder<GalleryItemViewModel> {
+public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBinder {
 
 
     private OnItemClickListener onItemClickListener;
@@ -37,7 +38,7 @@ public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBi
     }
 
     @Override
-    public void onBind(final GalleryItemViewModel galleryItemViewModel) {
+    public void onBind(ViewModel viewModel) {
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,8 +47,13 @@ public class GalleryViewHolder extends RecyclerView.ViewHolder implements ViewBi
             }
         });
 
-        titleTextView.setText(galleryItemViewModel.getTitle());
-        informationView.setVisibility(galleryItemViewModel.checkVisibleInformation() ? View.VISIBLE : View.INVISIBLE);
-        ImageLoader.getInstance().loadImage(galleryItemViewModel.getImageUrl(), galleryImageView);
+        if (viewModel != null && viewModel instanceof GalleryItemViewModel) {
+            GalleryItemViewModel galleryItemViewModel = (GalleryItemViewModel) viewModel;
+            titleTextView.setText(galleryItemViewModel.getTitle());
+            informationView.setVisibility(galleryItemViewModel.checkVisibleInformation() ? View.VISIBLE : View.INVISIBLE);
+            ImageLoader.getInstance().loadImage(galleryItemViewModel.getImageUrl(), galleryImageView);
+        }
+
+
     }
 }

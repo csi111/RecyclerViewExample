@@ -1,5 +1,10 @@
 package com.sean.android.example.base.protocol;
 
+import com.sean.android.example.base.protocol.header.Header;
+import com.sean.android.example.base.protocol.data.Input;
+import com.sean.android.example.base.protocol.data.RequestData;
+import com.sean.android.example.base.protocol.data.ResponseData;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;

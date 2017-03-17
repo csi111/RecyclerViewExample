@@ -1,4 +1,4 @@
-package com.sean.android.example.base.protocol;
+package com.sean.android.example.base.protocol.header;
 
 /**
  * Created by Seonil on 2017-03-09.

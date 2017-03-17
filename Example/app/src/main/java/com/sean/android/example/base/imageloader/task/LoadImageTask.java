@@ -15,15 +15,14 @@ import com.sean.android.example.base.imageloader.executor.ImageLoadExecutor;
 import com.sean.android.example.base.imageloader.view.ViewWrapper;
 import com.sean.android.example.base.protocol.Client;
 import com.sean.android.example.base.protocol.ConnectException;
-import com.sean.android.example.base.protocol.RequestData;
-import com.sean.android.example.base.protocol.ResponseData;
+import com.sean.android.example.base.protocol.data.RequestData;
+import com.sean.android.example.base.protocol.data.ResponseData;
 import com.sean.android.example.base.protocol.UrlConnectionClient;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Seonil on 2017-03-13.

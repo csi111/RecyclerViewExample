@@ -1,6 +1,6 @@
 package com.sean.android.example.base.asynctask;
 
-import com.sean.android.example.base.protocol.ResponseData;
+import com.sean.android.example.base.protocol.data.ResponseData;
 
 /**
  * Created by Seonil on 2017-03-09.

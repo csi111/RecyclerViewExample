@@ -6,7 +6,7 @@ import java.util.Collection;
  * Created by sean on 2017. 3. 11..
  */
 
-public interface GalleryViewModel {
+public interface GalleryViewModel extends ViewModel{
 
     int itemCount();
 

@@ -1,4 +1,7 @@
-package com.sean.android.example.base.protocol;
+package com.sean.android.example.base.protocol.data;
+
+import com.sean.android.example.base.protocol.ConnectException;
+import com.sean.android.example.base.protocol.header.Header;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -4,7 +4,7 @@ import com.sean.android.example.base.asynctask.HttpBackgroundResult;
 import com.sean.android.example.base.asynctask.HttpBackgroundWork;
 import com.sean.android.example.base.asynctask.HttpUrlPath;
 import com.sean.android.example.base.protocol.HttpRequest;
-import com.sean.android.example.base.protocol.ResponseData;
+import com.sean.android.example.base.protocol.data.ResponseData;
 import com.sean.android.example.base.util.Logger;
 import com.sean.android.example.domain.GettyImageParser;
 import com.sean.android.example.domain.GettyImages;

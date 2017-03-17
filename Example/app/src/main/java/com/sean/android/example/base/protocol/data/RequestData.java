@@ -1,4 +1,6 @@
-package com.sean.android.example.base.protocol;
+package com.sean.android.example.base.protocol.data;
+
+import com.sean.android.example.base.protocol.header.Header;
 
 import java.net.MalformedURLException;
 import java.net.URL;

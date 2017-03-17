@@ -1,4 +1,4 @@
-package com.sean.android.example.base.protocol;
+package com.sean.android.example.base.protocol.data;
 
 import java.io.IOException;
 import java.io.InputStream;

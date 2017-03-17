@@ -2,7 +2,7 @@ package com.sean.android.example.base.asynctask;
 
 import com.sean.android.example.base.protocol.ConnectException;
 import com.sean.android.example.base.protocol.HttpRequest;
-import com.sean.android.example.base.protocol.ResponseData;
+import com.sean.android.example.base.protocol.data.ResponseData;
 import com.sean.android.example.base.protocol.UrlConnectionClient;
 
 import java.util.concurrent.Callable;

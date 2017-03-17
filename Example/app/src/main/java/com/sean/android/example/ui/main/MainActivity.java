@@ -23,6 +23,7 @@ import com.sean.android.example.ui.main.viewmodel.GalleryItemViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModel;
 import com.sean.android.example.ui.main.viewmodel.GalleryViewModelImpl;
 import com.sean.android.example.ui.main.viewmodel.ViewBinder;
+import com.sean.android.example.ui.main.viewmodel.ViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +101,7 @@ public class MainActivity extends BaseActivity {
         super.onConfigurationChanged(newConfig);
     }
 
-    private void bindViewFragment(int id, Object param) {
+    private void bindViewFragment(int id, ViewModel param) {
         Fragment fragment = getSupportFragmentManager().findFragmentById(id);
         if (fragment != null) {
             if (ViewBinder.class.isAssignableFrom(fragment.getClass())) {

@@ -1,5 +1,9 @@
 package com.sean.android.example.base.protocol;
 
+import com.sean.android.example.base.protocol.header.Header;
+import com.sean.android.example.base.protocol.data.RequestData;
+import com.sean.android.example.base.protocol.data.ResponseData;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -8,9 +12,6 @@ import java.util.List;
  */
 
 public class HttpRequest {
-
-
-
 
     private final Client client;
     private final RequestData requestData;
