@@ -183,7 +183,7 @@ public class ImageLoader {
 
     private Handler getHandler() {
         Handler handler = null;
-        if (Looper.myLooper() == Looper.getMainLooper()) {
+        if (Looper.myLooper() == Looper.getMainLooper()) { //Image must be displayed on UIThread so that Looper also is Mainlooper.
             handler = new Handler();
         }
 
