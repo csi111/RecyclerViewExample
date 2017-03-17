@@ -17,8 +17,6 @@ public class UrlConnectionClient implements Client {
     static final int CONNECT_TIMEOUT_MILLS = 25 * 1000; //25s
     static final int READ_TIMEOUT_MILLS = 30 * 1000; //30s
 
-    private static final int CHUNK_SIZE = 2048;
-
     @Override
     public ResponseData call(RequestData requestData) throws ConnectException {
         try {
@@ -40,13 +38,9 @@ public class UrlConnectionClient implements Client {
     }
 
     void prepareCall(HttpURLConnection httpURLConnection, RequestData requestData) {
-
-//        httpURLConnection.setDoInput(true); //Default true
-
         for (Header header : requestData.getHeaders()) {
             httpURLConnection.addRequestProperty(header.getName(), header.getValue());
         }
-        httpURLConnection.setChunkedStreamingMode(CHUNK_SIZE);
     }
 
     ResponseData readResponse(HttpURLConnection httpURLConnection) throws IOException, ConnectException {
